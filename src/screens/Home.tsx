@@ -36,7 +36,7 @@ export default function Home() {
 
   return (
     <div className="flex-1 overflow-y-auto scroll-hide pb-6 fade-in">
-      <div className="px-5 pt-7 pb-2">
+      <div className="px-5 pt-7 pb-2 text-center">
         <p className="text-xl font-extrabold">
           {greetingByHour()}، {state.profile.name || "صديقتي"} 🌷
         </p>
