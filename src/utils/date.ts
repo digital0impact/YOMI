@@ -39,6 +39,24 @@ export function formatFullDateAr(d: Date = new Date()): string {
   return `${WEEKDAYS_AR[d.getDay()]}، ${d.getDate()} ${MONTHS_AR[d.getMonth()]}`;
 }
 
+// Latin digits (-nu-latn) to match the Western Arabic numerals used
+// everywhere else in the app (task counts, habit streaks, ...).
+const hijriFormatter = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/** e.g. "٨ ربيع الأول ١٤٤٨هـ" (Umm al-Qura Hijri calendar) */
+export function formatHijriDateAr(d: Date = new Date()): string {
+  try {
+    return hijriFormatter.format(d);
+  } catch {
+    // Hijri calendar formatting isn't supported in this environment
+    return "";
+  }
+}
+
 export function monthLabelAr(d: Date = new Date()): string {
   return `${MONTHS_AR[d.getMonth()]} ${d.getFullYear()}`;
 }

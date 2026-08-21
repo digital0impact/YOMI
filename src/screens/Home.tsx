@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../state/store";
 import { PRAYERS } from "../data/constants";
-import { formatFullDateAr, greetingByHour, isEvening, todayKey } from "../utils/date";
+import { formatFullDateAr, formatHijriDateAr, greetingByHour, isEvening, todayKey } from "../utils/date";
 import AddTaskSheet from "../components/AddTaskSheet";
 import ImpactQuickSheet from "../components/ImpactQuickSheet";
 import IntentionSheet from "../components/IntentionSheet";
@@ -16,6 +16,7 @@ export default function Home() {
   const [intentionOpen, setIntentionOpen] = useState(false);
   const [eveningOpen, setEveningOpen] = useState(false);
 
+  const hijriDate = formatHijriDateAr();
   const prayerDay = state.prayers[date];
   const intention = state.intentions[date]?.text;
 
@@ -41,6 +42,7 @@ export default function Home() {
         </p>
         <p className="text-sm mt-0.5" style={{ color: "var(--ink-faint)" }}>
           {formatFullDateAr()}
+          {hijriDate && ` • ${hijriDate}`}
         </p>
       </div>
 
