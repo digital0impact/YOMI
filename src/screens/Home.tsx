@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../state/store";
 import { PRAYERS } from "../data/constants";
-import { formatFullDateAr, formatHijriDateAr, greetingByHour, isEvening, todayKey } from "../utils/date";
+import {
+  dayMotivationAr,
+  formatFullDateAr,
+  formatHijriDateAr,
+  greetingByHour,
+  isEvening,
+  todayKey,
+} from "../utils/date";
 import AddTaskSheet from "../components/AddTaskSheet";
 import ImpactQuickSheet from "../components/ImpactQuickSheet";
 import IntentionSheet from "../components/IntentionSheet";
@@ -36,37 +43,50 @@ export default function Home() {
 
   return (
     <div className="flex-1 overflow-y-auto scroll-hide pb-6 fade-in">
-      <div className="px-5 pt-7 pb-2 text-center">
-        <p className="text-xl font-extrabold">
-          {greetingByHour()}، {state.profile.name || "صديقتي"} 🌷
-        </p>
-        <p className="text-sm mt-0.5" style={{ color: "var(--ink-faint)" }}>
+      <div className="flex items-center justify-between px-5 pt-6 pb-1">
+        <p className="text-lg font-extrabold flex items-center gap-1.5">يومي 🌷</p>
+        <p className="text-xs font-semibold" style={{ color: "var(--ink-faint)" }}>
           {formatFullDateAr()}
           {hijriDate && ` • ${hijriDate}`}
         </p>
       </div>
 
       <div className="px-5 flex flex-col gap-4 mt-3">
+        {/* الترحيب */}
+        <div
+          className="card"
+          style={{ background: "linear-gradient(135deg, var(--gradient-a), var(--gradient-b))", border: "none" }}
+        >
+          <p className="text-sm font-bold flex items-center gap-1.5" style={{ color: "var(--primary-strong)" }}>
+            🌷 {greetingByHour()}
+          </p>
+          <p className="text-2xl font-extrabold mt-1">{state.profile.name || "صديقتي"}</p>
+          <p className="text-sm mt-2 leading-7" style={{ color: "var(--ink-soft)" }}>
+            {dayMotivationAr()}
+          </p>
+        </div>
+
         {/* النية */}
-        <button
-          onClick={() => setIntentionOpen(true)}
-          className="card text-start w-full"
+        <div
+          className="card"
           style={{ background: "var(--primary-tint)", borderColor: "var(--primary-tint-2)" }}
         >
-          <p className="section-title" style={{ color: "var(--primary-strong)" }}>
-            🤍 نيتي اليوم
-          </p>
-          {intention ? (
-            <p className="mt-2 text-[15px] leading-7">{intention}</p>
-          ) : (
-            <p className="mt-2 text-sm font-bold" style={{ color: "var(--primary-strong)" }}>
-              + أضيف نيتي
+          <div className="flex items-center justify-between">
+            <p className="section-title" style={{ color: "var(--primary-strong)" }}>
+              🤍 نيتي اليوم
             </p>
-          )}
-        </button>
+            <button className="btn-ghost" onClick={() => setIntentionOpen(true)}>
+              {intention ? "تعديل" : "+ إضافة"}
+            </button>
+          </div>
+          {intention && <p className="mt-2 text-[15px] leading-7">{intention}</p>}
+        </div>
 
         {/* الصلاة */}
         <div className="card">
+          <p className="text-xs font-bold mb-1" style={{ color: "var(--ink-faint)" }}>
+            اليوم
+          </p>
           <p className="section-title">🕌 صلاتي</p>
           <div className="flex justify-between mt-3.5 gap-1.5">
             {PRAYERS.map((p) => {
@@ -105,26 +125,31 @@ export default function Home() {
               + مهمة
             </button>
           </div>
-          <div className="mt-3 flex flex-col gap-1">
+          <div className="mt-3 flex flex-col">
             {todayTasks.length === 0 && (
               <p className="text-sm py-2" style={{ color: "var(--ink-faint)" }}>
                 لا مهام اليوم بعد، أضيفي أول مهمة لكِ.
               </p>
             )}
-            {todayTasks.map((t) => (
+            {todayTasks.map((t, i) => (
               <button
                 key={t.id}
                 onClick={() => toggleTask(t.id)}
-                className="flex items-center gap-2.5 py-2 text-start"
+                className="flex items-center gap-2.5 py-3 text-start"
+                style={{ borderTop: i === 0 ? "none" : "1px solid var(--border)" }}
               >
+                <span className="text-[15px] flex-1">{t.title}</span>
+                {t.priority === "urgent" && <span className="text-xs">🔥</span>}
                 <span
-                  className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[11px]"
-                  style={{ border: "2px solid var(--primary)", color: "var(--primary)" }}
+                  className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[11px]"
+                  style={{
+                    background: t.done ? "var(--primary)" : "transparent",
+                    border: t.done ? "none" : "2px solid var(--border)",
+                    color: "#fff",
+                  }}
                 >
                   {t.done ? "✓" : ""}
                 </span>
-                <span className="text-[15px]">{t.title}</span>
-                {t.priority === "urgent" && <span className="text-xs ms-auto">🔥</span>}
               </button>
             ))}
           </div>
@@ -166,17 +191,19 @@ export default function Home() {
         {/* أثري اليوم */}
         <button
           onClick={() => setImpactOpen(true)}
-          className="card text-center w-full"
+          className="card flex items-center gap-3 w-full text-start"
           style={{
             background: "linear-gradient(135deg, var(--gradient-a), var(--gradient-b))",
             border: "none",
           }}
         >
-          <p className="font-extrabold text-[15px]">هل عملتِ خيرًا اليوم؟</p>
-          <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
-            حتى الخير الصغير له أثر.
-          </p>
-          <span className="btn-primary inline-block mt-3.5">أضيف أثري</span>
+          <span className="flex-1">
+            <span className="block font-extrabold text-[15px]">🤍 أثري اليوم</span>
+            <span className="block text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
+              حتى الخير الصغير له أثر.
+            </span>
+          </span>
+          <span className="btn-primary shrink-0">أضيف أثري</span>
         </button>
 
         {showEveningBanner && (

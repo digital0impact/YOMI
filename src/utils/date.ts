@@ -92,3 +92,13 @@ export function isEvening(d: Date = new Date()): boolean {
   const h = d.getHours();
   return h >= 18 || h < 4;
 }
+
+/** short motivational line under the greeting, tuned to the time of day */
+export function dayMotivationAr(d: Date = new Date()): string {
+  const h = d.getHours();
+  if (h < 5) return "لحظة هدوء قبل يوم جديد.";
+  if (h < 12) return "يوم جديد، وخطوة جديدة نحو ما تريدين أن تكوني عليه.";
+  if (h < 17) return "طاب يومك، أنتِ في منتصف الطريق.";
+  if (h < 20) return "بقي القليل، أنهي يومك بما يسعدكِ.";
+  return "مساء هادئ يستحق التوقف والتأمل.";
+}
