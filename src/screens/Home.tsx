@@ -86,7 +86,7 @@ export default function Home() {
                       border: done ? "none" : "1.5px solid var(--border)",
                     }}
                   >
-                    {done ? "✓" : "○"}
+                    {done ? "♥" : "○"}
                   </span>
                   <span className="text-[11px] font-bold" style={{ color: "var(--ink-soft)" }}>
                     {p.label}
