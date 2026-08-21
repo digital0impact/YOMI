@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: "Tajawal", "Segoe UI", Tahoma, sans-serif;
+
+  /* neutral palette (theme-independent) */
+  --ink: #2f2a28;
+  --ink-soft: #6f6663;
+  --ink-faint: #a79f9b;
+  --page: #fffaf7;
+  --surface: #ffffff;
+  --border: #efe6e1;
+
+  /* default theme: وردي هادئ (calm rose) */
+  --primary: #d9748c;
+  --primary-strong: #c05c76;
+  --primary-tint: #fdf1f4;
+  --primary-tint-2: #f7c9d4;
+  --accent: #f0b8c4;
+  --gradient-a: #fbdde4;
+  --gradient-b: #f6c9d6;
+}
+
+[data-theme="lavender"] {
+  --primary: #9b8ac4;
+  --primary-strong: #8171ad;
+  --primary-tint: #f4f1fb;
+  --primary-tint-2: #d6ccef;
+  --accent: #c3b5e8;
+  --gradient-a: #e7e1f8;
+  --gradient-b: #d3c6ef;
+}
+
+[data-theme="green"] {
+  --primary: #7ca982;
+  --primary-strong: #5f8d66;
+  --primary-tint: #f0f6f1;
+  --primary-tint-2: #c6e0cb;
+  --accent: #a9cdb0;
+  --gradient-a: #e3f0e4;
+  --gradient-b: #c9e4cd;
+}
+
+[data-theme="sky"] {
+  --primary: #6fa8c7;
+  --primary-strong: #4f8bab;
+  --primary-tint: #eff6fa;
+  --primary-tint-2: #c3e1ee;
+  --accent: #9ec7dc;
+  --gradient-a: #e2f1f7;
+  --gradient-b: #c6e3ee;
+}
+
+[data-theme="beige"] {
+  --primary: #b98f63;
+  --primary-strong: #9c7449;
+  --primary-tint: #faf4ec;
+  --primary-tint-2: #e8d5bc;
+  --accent: #d5b98f;
+  --gradient-a: #f4e8d7;
+  --gradient-b: #e9d3b4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--page);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--primary-tint-2);
+}
+
+/* ---- reusable app classes ---- */
+
+.app-shell {
+  max-width: 480px;
+  margin-inline: auto;
+  min-height: 100dvh;
+  background: var(--page);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.section-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 13px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+  background: var(--primary-strong);
+}
+
+.btn-ghost {
+  background: var(--primary-tint);
+  color: var(--primary-strong);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+.chip {
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--surface);
+  transition: all 0.15s ease;
+}
+
+.chip[data-selected="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.pill-count {
+  background: var(--primary-tint);
+  color: var(--primary-strong);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+}
+
+.progress-track {
+  background: var(--primary-tint);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: var(--primary);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.scroll-hide::-webkit-scrollbar {
+  display: none;
+}
+.scroll-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes rise-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sheet-in {
+  animation: rise-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.25s ease;
+}
