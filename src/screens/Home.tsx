@@ -8,6 +8,7 @@ import IntentionSheet from "../components/IntentionSheet";
 import EveningReflectionSheet from "../components/EveningReflectionSheet";
 import BrandHeader from "../components/BrandHeader";
 import HeroCard from "../components/HeroCard";
+import Sticker from "../components/Sticker";
 import type { PrayerName } from "../types";
 
 export default function Home() {
@@ -42,7 +43,7 @@ export default function Home() {
       <div className="px-5 flex flex-col gap-4 mt-3">
         {/* الترحيب */}
         <HeroCard
-          eyebrowIcon={state.profile.sticker}
+          eyebrowIcon={<Sticker value={state.profile.sticker} size={16} />}
           eyebrow={greetingByHour()}
           title={state.profile.name || "صديقتي"}
           subtitle={dayMotivationAr()}

@@ -7,7 +7,7 @@ export default function HeroCard({
   title,
   subtitle,
 }: {
-  eyebrowIcon: string;
+  eyebrowIcon: ReactNode;
   eyebrow: string;
   title: string;
   subtitle: ReactNode;

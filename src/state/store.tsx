@@ -56,6 +56,7 @@ function defaultState(): AppState {
     intentions: {},
     reflections: {},
     notesSpace: "",
+    customStickers: [],
   };
 }
 
@@ -85,6 +86,8 @@ interface Ctx {
   completeOnboarding: (habitIds: string[], theme: ThemeId) => void;
   setTheme: (theme: ThemeId) => void;
   setSticker: (sticker: string) => void;
+  addCustomSticker: (dataUrl: string) => void;
+  deleteCustomSticker: (dataUrl: string) => void;
 
   addTask: (input: {
     title: string;
@@ -127,7 +130,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(loadState);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // storage full (e.g. too many custom stickers) — keep working in
+      // memory rather than crashing; nothing else we can do client-side
+      console.warn("يومي: تعذّر حفظ البيانات محليًا، المساحة ممتلئة على الأرجح.");
+    }
   }, [state]);
 
   useEffect(() => {
@@ -148,6 +157,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setSticker = useCallback((sticker: string) => {
     setState((s) => ({ ...s, profile: { ...s.profile, sticker } }));
+  }, []);
+
+  const addCustomSticker = useCallback((dataUrl: string) => {
+    setState((s) => ({ ...s, customStickers: [dataUrl, ...s.customStickers] }));
+  }, []);
+
+  const deleteCustomSticker = useCallback((dataUrl: string) => {
+    setState((s) => ({
+      ...s,
+      customStickers: s.customStickers.filter((c) => c !== dataUrl),
+      profile: s.profile.sticker === dataUrl ? { ...s.profile, sticker: DEFAULT_STICKER } : s.profile,
+    }));
   }, []);
 
   const completeOnboarding = useCallback((habitIds: string[], theme: ThemeId) => {
@@ -338,6 +359,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       setTheme,
       setSticker,
+      addCustomSticker,
+      deleteCustomSticker,
       addTask,
       toggleTask,
       deleteTask,
@@ -364,6 +387,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       setTheme,
       setSticker,
+      addCustomSticker,
+      deleteCustomSticker,
       addTask,
       toggleTask,
       deleteTask,

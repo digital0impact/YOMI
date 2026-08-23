@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useApp } from "../state/store";
 import ScreenHeader from "../components/ScreenHeader";
 import Sheet from "../components/Sheet";
+import Sticker from "../components/Sticker";
 import { STICKERS, THEMES } from "../data/constants";
+import { fileToSquareDataUrl } from "../utils/image";
 import type { TabId } from "../components/BottomNav";
 
 type SheetId = "name" | "theme" | "sticker" | "notes" | "settings" | null;
@@ -66,12 +68,89 @@ function ThemeSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 }
 
 function StickerSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { state, setSticker } = useApp();
+  const { state, setSticker, addCustomSticker, deleteCustomSticker } = useApp();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow choosing the same file again later
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("اختاري ملف صورة (jpg، png...)");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      const dataUrl = await fileToSquareDataUrl(file, 128);
+      addCustomSticker(dataUrl);
+      setSticker(dataUrl);
+    } catch {
+      setError("تعذّرت إضافة هذه الصورة، جرّبي صورة أخرى.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Sheet open={open} onClose={onClose} title="اختاري ستيكرك">
       <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>
         يظهر في مساحتك وفي بطاقة الترحيب اليومية.
       </p>
+
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={busy}
+        className="btn-ghost w-full mb-1 disabled:opacity-50"
+      >
+        {busy ? "جارٍ الإضافة..." : "📷 أضيفي تصميمكِ الخاص"}
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onFileChosen}
+      />
+      {error && (
+        <p className="text-xs font-bold mt-1.5" style={{ color: "#c0455f" }}>
+          {error}
+        </p>
+      )}
+
+      {state.customStickers.length > 0 && (
+        <div className="mt-4">
+          <p className="text-sm font-bold mb-2">تصاميمكِ</p>
+          <div className="grid grid-cols-5 gap-2.5">
+            {state.customStickers.map((s) => {
+              const selected = state.profile.sticker === s;
+              return (
+                <div key={s} className="relative">
+                  <button
+                    onClick={() => setSticker(s)}
+                    className="aspect-square w-full rounded-2xl overflow-hidden block"
+                    style={{ border: `2px solid ${selected ? "var(--primary)" : "var(--border)"}` }}
+                  >
+                    <img src={s} alt="" className="w-full h-full object-cover" />
+                  </button>
+                  <button
+                    onClick={() => deleteCustomSticker(s)}
+                    className="absolute -top-1.5 -end-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white"
+                    style={{ background: "#c0455f" }}
+                    aria-label="حذف هذا التصميم"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <p className="text-sm font-bold mt-4 mb-2">جاهزة</p>
       <div className="grid grid-cols-5 gap-2.5">
         {STICKERS.map((s) => {
           const selected = state.profile.sticker === s;
@@ -195,7 +274,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
             className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
             style={{ background: "linear-gradient(135deg, var(--gradient-a), var(--gradient-b))" }}
           >
-            {state.profile.sticker}
+            <Sticker value={state.profile.sticker} size={56} />
           </span>
           <div>
             <p className="font-extrabold text-lg">{state.profile.name || "صديقتي"}</p>
@@ -213,7 +292,9 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
               className="w-full flex items-center gap-3 px-4 py-3.5 text-start"
               style={{ borderTop: idx === 0 ? "none" : "1px solid var(--border)" }}
             >
-              <span className="text-lg">{it.icon}</span>
+              <span className="text-lg w-5 inline-flex items-center justify-center">
+                {it.id === "sticker" ? <Sticker value={state.profile.sticker} size={20} /> : it.icon}
+              </span>
               <span className="font-semibold text-[15px]">{it.label}</span>
               <span className="ms-auto" style={{ color: "var(--ink-faint)" }}>
                 ‹
