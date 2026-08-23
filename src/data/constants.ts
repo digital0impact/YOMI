@@ -1,4 +1,4 @@
-import type { InterestId, Subject, ThemeId } from "../types";
+import type { InterestId, IntentionCategory, IntentionFulfillment, Subject, ThemeId } from "../types";
 
 export const THEMES: { id: ThemeId; label: string; emoji: string; swatch: string }[] = [
   { id: "rose", label: "وردي هادئ", emoji: "🌸", swatch: "#D9748C" },
@@ -57,6 +57,21 @@ export const MOODS: { id: "happy" | "good" | "busy" | "try_again"; label: string
   { id: "good", label: "جيد", emoji: "🙂" },
   { id: "busy", label: "كان مزدحمًا", emoji: "😐" },
   { id: "try_again", label: "سأحاول غدًا", emoji: "🌱" },
+];
+
+export const INTENTION_CATEGORIES: { id: IntentionCategory; label: string; emoji: string }[] = [
+  { id: "worship", label: "عبادة", emoji: "🕌" },
+  { id: "knowledge", label: "علم", emoji: "📖" },
+  { id: "parents", label: "بر الوالدين", emoji: "🫶" },
+  { id: "helping", label: "مساعدة الآخرين", emoji: "🤝" },
+  { id: "self_dev", label: "تطوير نفسي", emoji: "🌱" },
+  { id: "useful_work", label: "عمل نافع", emoji: "💼" },
+];
+
+export const INTENTION_FULFILLMENT: { id: IntentionFulfillment; label: string; emoji: string }[] = [
+  { id: "tried", label: "حاولت", emoji: "🌱" },
+  { id: "succeeded", label: "وفقت", emoji: "🤍" },
+  { id: "try_again", label: "سأحاول غدًا", emoji: "🔄" },
 ];
 
 export const PRIORITIES: { id: "normal" | "important" | "urgent"; label: string }[] = [

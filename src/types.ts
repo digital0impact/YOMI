@@ -73,9 +73,21 @@ export interface DayReflection {
   completedAt: number;
 }
 
+export type IntentionCategory =
+  | "worship"
+  | "knowledge"
+  | "parents"
+  | "helping"
+  | "self_dev"
+  | "useful_work";
+
+export type IntentionFulfillment = "tried" | "succeeded" | "try_again";
+
 export interface Intention {
   date: string;
   text: string;
+  category?: IntentionCategory;
+  fulfillment?: IntentionFulfillment;
 }
 
 export interface Profile {

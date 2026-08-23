@@ -15,6 +15,8 @@ import type {
   Habit,
   ImpactEntry,
   Intention,
+  IntentionCategory,
+  IntentionFulfillment,
   PrayerDay,
   PrayerName,
   Priority,
@@ -104,7 +106,8 @@ interface Ctx {
 
   addImpact: (entry: { tag?: string; text: string; date?: string }) => void;
 
-  setIntention: (date: string, text: string) => void;
+  setIntention: (date: string, text: string, category?: IntentionCategory) => void;
+  setIntentionFulfillment: (date: string, fulfillment: IntentionFulfillment) => void;
 
   saveReflection: (date: string, refl: Omit<DayReflection, "date" | "completedAt">) => void;
 
@@ -278,11 +281,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const setIntention = useCallback((date: string, text: string) => {
+  const setIntention = useCallback((date: string, text: string, category?: IntentionCategory) => {
     setState((s) => ({
       ...s,
-      intentions: { ...s.intentions, [date]: { date, text } as Intention },
+      intentions: { ...s.intentions, [date]: { date, text, category } as Intention },
     }));
+  }, []);
+
+  const setIntentionFulfillment = useCallback((date: string, fulfillment: IntentionFulfillment) => {
+    setState((s) => {
+      const existing = s.intentions[date];
+      if (!existing) return s;
+      return {
+        ...s,
+        intentions: { ...s.intentions, [date]: { ...existing, fulfillment } },
+      };
+    });
   }, []);
 
   const saveReflection = useCallback(
@@ -328,6 +342,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteGoal,
       addImpact,
       setIntention,
+      setIntentionFulfillment,
       saveReflection,
       setNotesSpace,
       resetAll,
@@ -352,6 +367,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteGoal,
       addImpact,
       setIntention,
+      setIntentionFulfillment,
       saveReflection,
       setNotesSpace,
       resetAll,
