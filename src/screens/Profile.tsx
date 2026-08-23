@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useApp } from "../state/store";
 import ScreenHeader from "../components/ScreenHeader";
 import Sheet from "../components/Sheet";
-import { THEMES } from "../data/constants";
+import { STICKERS, THEMES } from "../data/constants";
 import type { TabId } from "../components/BottomNav";
 
-type SheetId = "name" | "theme" | "notes" | "settings" | null;
+type SheetId = "name" | "theme" | "sticker" | "notes" | "settings" | null;
 
 function NameSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { state, setProfileName } = useApp();
@@ -60,6 +60,35 @@ function ThemeSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             {state.profile.theme === t.id && <span className="ms-auto text-sm">✓</span>}
           </button>
         ))}
+      </div>
+    </Sheet>
+  );
+}
+
+function StickerSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { state, setSticker } = useApp();
+  return (
+    <Sheet open={open} onClose={onClose} title="اختاري ستيكرك">
+      <p className="text-sm mb-4" style={{ color: "var(--ink-soft)" }}>
+        يظهر في مساحتك وفي بطاقة الترحيب اليومية.
+      </p>
+      <div className="grid grid-cols-5 gap-2.5">
+        {STICKERS.map((s) => {
+          const selected = state.profile.sticker === s;
+          return (
+            <button
+              key={s}
+              onClick={() => setSticker(s)}
+              className="aspect-square rounded-2xl flex items-center justify-center text-2xl"
+              style={{
+                border: `2px solid ${selected ? "var(--primary)" : "var(--border)"}`,
+                background: selected ? "var(--primary-tint)" : "var(--surface)",
+              }}
+            >
+              {s}
+            </button>
+          );
+        })}
       </div>
     </Sheet>
   );
@@ -149,6 +178,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
   const items: { id: string; label: string; icon: string; onClick: () => void }[] = [
     { id: "name", label: "اسمي", icon: "🌷", onClick: () => setSheet("name") },
     { id: "theme", label: "اللون", icon: "🎨", onClick: () => setSheet("theme") },
+    { id: "sticker", label: "ستيكراتي", icon: state.profile.sticker, onClick: () => setSheet("sticker") },
     { id: "habits", label: "عاداتي", icon: "🌱", onClick: () => onNavigate("habits") },
     { id: "goals", label: "أهدافي", icon: "🎯", onClick: () => onNavigate("goals") },
     { id: "impact", label: "آثاري", icon: "🤍", onClick: onOpenImpact },
@@ -165,7 +195,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
             className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
             style={{ background: "linear-gradient(135deg, var(--gradient-a), var(--gradient-b))" }}
           >
-            🌷
+            {state.profile.sticker}
           </span>
           <div>
             <p className="font-extrabold text-lg">{state.profile.name || "صديقتي"}</p>
@@ -195,6 +225,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
 
       <NameSheet open={sheet === "name"} onClose={() => setSheet(null)} />
       <ThemeSheet open={sheet === "theme"} onClose={() => setSheet(null)} />
+      <StickerSheet open={sheet === "sticker"} onClose={() => setSheet(null)} />
       <NotesSheet open={sheet === "notes"} onClose={() => setSheet(null)} />
       <SettingsSheet open={sheet === "settings"} onClose={() => setSheet(null)} />
     </div>

@@ -8,6 +8,15 @@ export const THEMES: { id: ThemeId; label: string; emoji: string; swatch: string
   { id: "beige", label: "بيج دافئ", emoji: "🤎", swatch: "#B98F63" },
 ];
 
+export const DEFAULT_STICKER = "🌷";
+
+/** decorative avatar stickers for personalizing the profile & home greeting */
+export const STICKERS: string[] = [
+  "🌷", "🌸", "🌼", "🌺", "🌻", "🦋",
+  "🐰", "🐱", "🐥", "🦢", "🐝", "🦄",
+  "🌙", "⭐", "💫", "🎀", "🍀", "🧸",
+];
+
 export const INTERESTS: { id: InterestId; label: string; emoji: string }[] = [
   { id: "study", label: "دراستي", emoji: "📚" },
   { id: "reading", label: "القراءة", emoji: "📖" },

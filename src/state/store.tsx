@@ -24,7 +24,7 @@ import type {
   TaskKind,
   ThemeId,
 } from "../types";
-import { DEFAULT_SUBJECTS, HABIT_OPTIONS } from "../data/constants";
+import { DEFAULT_STICKER, DEFAULT_SUBJECTS, HABIT_OPTIONS } from "../data/constants";
 import { todayKey } from "../utils/date";
 
 const STORAGE_KEY = "yomi.app.state.v1";
@@ -44,6 +44,7 @@ function defaultState(): AppState {
       interests: [],
       habitIds: [],
       theme: "rose",
+      sticker: DEFAULT_STICKER,
       onboarded: false,
     },
     tasks: [],
@@ -63,8 +64,11 @@ function loadState(): AppState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
+    const defaults = defaultState();
     // merge with defaults to survive schema growth between versions
-    return { ...defaultState(), ...parsed };
+    // (profile is merged one level deep so new profile fields, like a
+    // freshly-added sticker, get their default on old saved states)
+    return { ...defaults, ...parsed, profile: { ...defaults.profile, ...parsed.profile } };
   } catch {
     return defaultState();
   }
@@ -80,6 +84,7 @@ interface Ctx {
   setInterests: (ids: AppState["profile"]["interests"]) => void;
   completeOnboarding: (habitIds: string[], theme: ThemeId) => void;
   setTheme: (theme: ThemeId) => void;
+  setSticker: (sticker: string) => void;
 
   addTask: (input: {
     title: string;
@@ -139,6 +144,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((theme: ThemeId) => {
     setState((s) => ({ ...s, profile: { ...s.profile, theme } }));
+  }, []);
+
+  const setSticker = useCallback((sticker: string) => {
+    setState((s) => ({ ...s, profile: { ...s.profile, sticker } }));
   }, []);
 
   const completeOnboarding = useCallback((habitIds: string[], theme: ThemeId) => {
@@ -328,6 +337,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setInterests,
       completeOnboarding,
       setTheme,
+      setSticker,
       addTask,
       toggleTask,
       deleteTask,
@@ -353,6 +363,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setInterests,
       completeOnboarding,
       setTheme,
+      setSticker,
       addTask,
       toggleTask,
       deleteTask,

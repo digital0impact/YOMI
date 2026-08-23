@@ -95,6 +95,7 @@ export interface Profile {
   interests: InterestId[];
   habitIds: string[];
   theme: ThemeId;
+  sticker: string;
   onboarded: boolean;
 }
 

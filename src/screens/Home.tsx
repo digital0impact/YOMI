@@ -42,7 +42,7 @@ export default function Home() {
       <div className="px-5 flex flex-col gap-4 mt-3">
         {/* الترحيب */}
         <HeroCard
-          eyebrowIcon="🌷"
+          eyebrowIcon={state.profile.sticker}
           eyebrow={greetingByHour()}
           title={state.profile.name || "صديقتي"}
           subtitle={dayMotivationAr()}
