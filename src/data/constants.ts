@@ -36,10 +36,11 @@ export const DEFAULT_SUBJECTS: Subject[] = [
 export const IMPACT_TAGS: { id: string; label: string; emoji: string }[] = [
   { id: "helped", label: "ساعدت شخصًا", emoji: "🌷" },
   { id: "made_happy", label: "أسعدت أحدًا", emoji: "🤍" },
-  { id: "parents", label: "بررت والديّ", emoji: "🫶" },
   { id: "kind_word", label: "قلت كلمة طيبة", emoji: "💬" },
+  { id: "parents", label: "بررت والديّ", emoji: "🫶" },
   { id: "charity", label: "تصدقت", emoji: "🎁" },
   { id: "classmate", label: "ساعدت زميلة", emoji: "🤝" },
+  { id: "forgave", label: "عفوت عن شخص", emoji: "🕊️" },
   { id: "other", label: "فعلت خيرًا آخر", emoji: "🌱" },
 ];
 

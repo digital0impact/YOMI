@@ -13,10 +13,12 @@ export default function ImpactQuickSheet({
   onSaved?: () => void;
 }) {
   const { addImpact } = useApp();
+  const [stage, setStage] = useState<"form" | "done">("form");
   const [tag, setTag] = useState<string | undefined>(undefined);
   const [text, setText] = useState("");
 
   const reset = () => {
+    setStage("form");
     setTag(undefined);
     setText("");
   };
@@ -26,8 +28,7 @@ export default function ImpactQuickSheet({
     const finalText = text.trim() || tagLabel || "";
     if (!finalText) return;
     addImpact({ tag: tagLabel, text: finalText });
-    reset();
-    onClose();
+    setStage("done");
     onSaved?.();
   };
 
@@ -40,37 +41,70 @@ export default function ImpactQuickSheet({
       }}
       title="🤍 أثري اليوم"
     >
-      <div className="flex flex-col gap-5">
-        <p className="text-[15px]" style={{ color: "var(--ink-soft)" }}>
-          أثر جميل صنعته اليوم؟
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {IMPACT_TAGS.map((t) => (
-            <button
-              key={t.id}
-              className="chip"
-              data-selected={tag === t.id}
-              onClick={() => setTag(tag === t.id ? undefined : t.id)}
-            >
-              {t.emoji} {t.label}
-            </button>
-          ))}
+      {stage === "form" && (
+        <div className="flex flex-col gap-5">
+          <p className="text-[15px] font-bold">هل صنعتِ فرقًا صغيرًا اليوم؟</p>
+
+          <div className="flex flex-col gap-1">
+            {IMPACT_TAGS.map((t) => {
+              const selected = tag === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTag(selected ? undefined : t.id)}
+                  className="flex items-center gap-2.5 py-2 text-start"
+                >
+                  <span
+                    className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[11px]"
+                    style={{
+                      background: selected ? "var(--primary)" : "transparent",
+                      border: selected ? "none" : "2px solid var(--border)",
+                      color: "#fff",
+                    }}
+                  >
+                    {selected ? "✓" : ""}
+                  </span>
+                  <span className="text-[15px]">
+                    {t.emoji} {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div>
+            <label className="text-sm font-bold block mb-2">أو بأسلوبكِ الخاص</label>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="اليوم..."
+              rows={3}
+              className="w-full rounded-2xl p-3.5 outline-none resize-none text-[15px]"
+              style={{ border: "1.5px solid var(--border)", background: "var(--surface)" }}
+            />
+          </div>
+
+          <button className="btn-primary w-full disabled:opacity-40" disabled={!tag && !text.trim()} onClick={save}>
+            حفظ
+          </button>
         </div>
-        <div>
-          <label className="text-sm font-bold block mb-2">أريد أن أكتب أثري</label>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="اليوم..."
-            rows={3}
-            className="w-full rounded-2xl p-3.5 outline-none resize-none text-[15px]"
-            style={{ border: "1.5px solid var(--border)", background: "var(--surface)" }}
-          />
+      )}
+
+      {stage === "done" && (
+        <div className="flex flex-col items-center text-center gap-3 py-4">
+          <span className="text-4xl">🌷</span>
+          <p className="font-extrabold text-lg">الحمد لله على التوفيق للخير</p>
+          <button
+            className="btn-ghost mt-3"
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+          >
+            تمام 🌷
+          </button>
         </div>
-        <button className="btn-primary w-full disabled:opacity-40" disabled={!tag && !text.trim()} onClick={save}>
-          حفظ
-        </button>
-      </div>
+      )}
     </Sheet>
   );
 }
