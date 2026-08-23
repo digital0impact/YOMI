@@ -90,6 +90,7 @@ interface Ctx {
   deleteTask: (id: string) => void;
 
   addSubject: (name: string, icon: string) => void;
+  deleteSubject: (id: string) => void;
 
   togglePrayer: (date: string, prayer: PrayerName) => void;
 
@@ -185,6 +186,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((s) => ({
       ...s,
       subjects: [...s.subjects, { id: uid(), name, icon } as Subject],
+    }));
+  }, []);
+
+  const deleteSubject = useCallback((id: string) => {
+    setState((s) => ({
+      ...s,
+      subjects: s.subjects.filter((sub) => sub.id !== id),
     }));
   }, []);
 
@@ -310,6 +318,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       deleteTask,
       addSubject,
+      deleteSubject,
       togglePrayer,
       toggleHabitToday,
       addCustomHabit,
@@ -333,6 +342,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       deleteTask,
       addSubject,
+      deleteSubject,
       togglePrayer,
       toggleHabitToday,
       addCustomHabit,

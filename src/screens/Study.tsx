@@ -4,6 +4,7 @@ import ScreenHeader from "../components/ScreenHeader";
 import BrandHeader from "../components/BrandHeader";
 import HeroCard from "../components/HeroCard";
 import AddTaskSheet from "../components/AddTaskSheet";
+import AddSubjectSheet from "../components/AddSubjectSheet";
 import { currentWeekKeys, todayKey } from "../utils/date";
 import type { TaskKind } from "../types";
 
@@ -28,9 +29,10 @@ function subjectSummary(subjectId: string, tasks: { subjectId?: string; kind?: T
 }
 
 export default function Study() {
-  const { state, toggleTask, addTask } = useApp();
+  const { state, toggleTask, addTask, deleteSubject } = useApp();
   const [subjectId, setSubjectId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState<TaskKind | null>(null);
+  const [addSubjectOpen, setAddSubjectOpen] = useState(false);
   const [addedDuration, setAddedDuration] = useState<number | null>(null);
 
   const weekKeys = useMemo(() => new Set(currentWeekKeys()), []);
@@ -144,27 +146,49 @@ export default function Study() {
         </div>
 
         <div className="card">
-          <p className="section-title">موادي</p>
+          <div className="flex items-center justify-between">
+            <p className="section-title">موادي</p>
+            <button className="btn-ghost" onClick={() => setAddSubjectOpen(true)}>
+              + مادة
+            </button>
+          </div>
           <div className="mt-2 flex flex-col">
+            {state.subjects.length === 0 && (
+              <p className="text-sm py-2" style={{ color: "var(--ink-faint)" }}>
+                لا مواد بعد، أضيفي أول مادة لكِ.
+              </p>
+            )}
             {state.subjects.map((s, i) => {
               const summary = subjectSummary(s.id, state.tasks);
               return (
-                <button
+                <div
                   key={s.id}
-                  onClick={() => setSubjectId(s.id)}
-                  className="w-full flex items-center gap-3 py-3 text-start"
+                  className="flex items-center gap-1"
                   style={{ borderTop: i === 0 ? "none" : "1px solid var(--border)" }}
                 >
-                  <span className="flex-1 flex items-baseline gap-2">
-                    <span className="font-bold text-[15px]">{s.name}</span>
-                    {summary && (
-                      <span className="text-sm" style={{ color: "var(--ink-faint)" }}>
-                        {summary}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-xl shrink-0">{s.icon}</span>
-                </button>
+                  <button
+                    onClick={() => setSubjectId(s.id)}
+                    className="flex-1 flex items-center gap-3 py-3 text-start"
+                  >
+                    <span className="flex-1 flex items-baseline gap-2">
+                      <span className="font-bold text-[15px]">{s.name}</span>
+                      {summary && (
+                        <span className="text-sm" style={{ color: "var(--ink-faint)" }}>
+                          {summary}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-xl shrink-0">{s.icon}</span>
+                  </button>
+                  <button
+                    onClick={() => deleteSubject(s.id)}
+                    className="w-7 h-7 shrink-0 flex items-center justify-center text-sm"
+                    style={{ color: "var(--ink-faint)" }}
+                    aria-label={`حذف مادة ${s.name}`}
+                  >
+                    ✕
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -194,6 +218,8 @@ export default function Study() {
           )}
         </div>
       </div>
+
+      <AddSubjectSheet open={addSubjectOpen} onClose={() => setAddSubjectOpen(false)} />
     </div>
   );
 }
