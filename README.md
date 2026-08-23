@@ -41,11 +41,18 @@ npm run lint      # فحص الكود
 ## النشر (رابط دائم مجاني عبر GitHub Pages)
 
 المستودع يحتوي على `.github/workflows/deploy-pages.yml` يبني وينشر التطبيق
-تلقائيًا على GitHub Pages مع كل push لفرع `claude/personal-organizer-app-map-y8rrdh` —
-بلا أي إعداد يدوي، الورك‌فلو يفعّل GitHub Pages بنفسه عند أول تشغيل.
+تلقائيًا على GitHub Pages مع كل push لفرع `claude/personal-organizer-app-map-y8rrdh`.
 
-الرابط الدائم يظهر في تبويب **Actions** (داخل تفاصيل آخر تشغيل ناجح لـ
-"Deploy to GitHub Pages") وأيضًا لاحقًا في **Settings ← Pages**، عادة بالشكل:
+**خطوة واحدة فقط عليكِ فعلها يدويًا (لمرة واحدة)** — إنشاء "موقع Pages" نفسه
+أمر لا يقدر عليه الورك‌فلو تلقائيًا مهما كانت صلاحياته، فهو يحتاج صلاحية مالك
+المستودع تحديدًا:
+
+1. من صفحة المستودع على GitHub: **Settings ← Pages**.
+2. تحت "Build and deployment" اختاري **Source: GitHub Actions**.
+3. من تبويب **Actions**، شغّلي ورك‌فلو "Deploy to GitHub Pages" يدويًا عبر
+   "Run workflow" (أو ادفعي أي تعديل جديد فيشتغل تلقائيًا).
+
+بعدها سيظهر الرابط الدائم في نفس صفحة Settings ← Pages، عادة بالشكل:
 `https://<اسم-الحساب>.github.io/YOMI/`
 
 هذا الرابط:
