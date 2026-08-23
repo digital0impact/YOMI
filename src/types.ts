@@ -110,6 +110,4 @@ export interface AppState {
   intentions: Record<string, Intention>; // date -> intention
   reflections: Record<string, DayReflection>; // date -> reflection
   notesSpace: string;
-  /** stickers she uploaded herself (data URLs), offered alongside the built-in STICKERS */
-  customStickers: string[];
 }

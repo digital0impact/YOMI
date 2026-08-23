@@ -1,13 +1,17 @@
-import { isImageDataUrl } from "../utils/image";
+/** stickers ship as fixed artwork files under /public/stickers, referenced by path */
+function isStickerAsset(value: string): boolean {
+  return value.startsWith("/") || value.startsWith("data:");
+}
 
 /**
- * Renders a profile sticker, whether it's a built-in emoji or a custom
- * uploaded image (data URL). Emoji render as plain text so they inherit
- * whatever font size/line-height the caller already set; images are sized
- * explicitly via `size` (px) since they can't inherit a font size.
+ * Renders a profile sticker, whether it's a plain emoji or one of the
+ * app's custom artwork files (/stickers/*.svg). Emoji render as plain
+ * text so they inherit whatever font size/line-height the caller already
+ * set; artwork is sized explicitly via `size` (px) since it can't inherit
+ * a font size.
  */
 export default function Sticker({ value, size }: { value: string; size: number }) {
-  if (isImageDataUrl(value)) {
+  if (isStickerAsset(value)) {
     return (
       <img
         src={value}
@@ -15,8 +19,7 @@ export default function Sticker({ value, size }: { value: string; size: number }
         style={{
           width: size,
           height: size,
-          borderRadius: "9999px",
-          objectFit: "cover",
+          objectFit: "contain",
           display: "inline-block",
           verticalAlign: "middle",
         }}

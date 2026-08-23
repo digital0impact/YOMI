@@ -8,13 +8,29 @@ export const THEMES: { id: ThemeId; label: string; emoji: string; swatch: string
   { id: "beige", label: "بيج دافئ", emoji: "🤎", swatch: "#B98F63" },
 ];
 
-export const DEFAULT_STICKER = "🌷";
+export const DEFAULT_STICKER = "/stickers/tulip.svg";
 
-/** decorative avatar stickers for personalizing the profile & home greeting */
+/**
+ * Decorative avatar stickers for personalizing the profile & home greeting.
+ * Fixed, hand-drawn artwork (not platform emoji) so they look identical on
+ * every device. Files live in /public/stickers — add a new SVG there and
+ * list it here to add another sticker.
+ */
 export const STICKERS: string[] = [
-  "🌷", "🌸", "🌼", "🌺", "🌻", "🦋",
-  "🐰", "🐱", "🐥", "🦢", "🐝", "🦄",
-  "🌙", "⭐", "💫", "🎀", "🍀", "🧸",
+  "/stickers/tulip.svg",
+  "/stickers/sunflower.svg",
+  "/stickers/heart.svg",
+  "/stickers/star.svg",
+  "/stickers/moon.svg",
+  "/stickers/book.svg",
+  "/stickers/butterfly.svg",
+  "/stickers/bow.svg",
+  "/stickers/cloud.svg",
+  "/stickers/teacup.svg",
+  "/stickers/cat.svg",
+  "/stickers/bunny.svg",
+  "/stickers/dove.svg",
+  "/stickers/clover.svg",
 ];
 
 export const INTERESTS: { id: InterestId; label: string; emoji: string }[] = [
