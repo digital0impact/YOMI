@@ -1,18 +1,13 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../state/store";
 import { PRAYERS } from "../data/constants";
-import {
-  dayMotivationAr,
-  formatFullDateAr,
-  formatHijriDateAr,
-  greetingByHour,
-  isEvening,
-  todayKey,
-} from "../utils/date";
+import { dayMotivationAr, greetingByHour, isEvening, todayKey } from "../utils/date";
 import AddTaskSheet from "../components/AddTaskSheet";
 import ImpactQuickSheet from "../components/ImpactQuickSheet";
 import IntentionSheet from "../components/IntentionSheet";
 import EveningReflectionSheet from "../components/EveningReflectionSheet";
+import BrandHeader from "../components/BrandHeader";
+import HeroCard from "../components/HeroCard";
 import type { PrayerName } from "../types";
 
 export default function Home() {
@@ -23,7 +18,6 @@ export default function Home() {
   const [intentionOpen, setIntentionOpen] = useState(false);
   const [eveningOpen, setEveningOpen] = useState(false);
 
-  const hijriDate = formatHijriDateAr();
   const prayerDay = state.prayers[date];
   const intention = state.intentions[date]?.text;
 
@@ -43,28 +37,16 @@ export default function Home() {
 
   return (
     <div className="flex-1 overflow-y-auto scroll-hide pb-6 fade-in">
-      <div className="flex items-center justify-between px-5 pt-6 pb-1">
-        <p className="text-lg font-extrabold flex items-center gap-1.5">يومي 🌷</p>
-        <p className="text-xs font-semibold" style={{ color: "var(--ink-faint)" }}>
-          {formatFullDateAr()}
-          {hijriDate && ` • ${hijriDate}`}
-        </p>
-      </div>
+      <BrandHeader />
 
       <div className="px-5 flex flex-col gap-4 mt-3">
         {/* الترحيب */}
-        <div
-          className="card"
-          style={{ background: "linear-gradient(135deg, var(--gradient-a), var(--gradient-b))", border: "none" }}
-        >
-          <p className="text-sm font-bold flex items-center gap-1.5" style={{ color: "var(--primary-strong)" }}>
-            🌷 {greetingByHour()}
-          </p>
-          <p className="text-2xl font-extrabold mt-1">{state.profile.name || "صديقتي"}</p>
-          <p className="text-sm mt-2 leading-7" style={{ color: "var(--ink-soft)" }}>
-            {dayMotivationAr()}
-          </p>
-        </div>
+        <HeroCard
+          eyebrowIcon="🌷"
+          eyebrow={greetingByHour()}
+          title={state.profile.name || "صديقتي"}
+          subtitle={dayMotivationAr()}
+        />
 
         {/* النية */}
         <div

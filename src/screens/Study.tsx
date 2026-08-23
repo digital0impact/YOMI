@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../state/store";
 import ScreenHeader from "../components/ScreenHeader";
+import BrandHeader from "../components/BrandHeader";
+import HeroCard from "../components/HeroCard";
 import AddTaskSheet from "../components/AddTaskSheet";
-import { currentWeekKeys } from "../utils/date";
+import { currentWeekKeys, todayKey } from "../utils/date";
 import type { TaskKind } from "../types";
 
 const KIND_LABELS: Record<TaskKind, { title: string; icon: string; addLabel: string }> = {
@@ -11,10 +13,25 @@ const KIND_LABELS: Record<TaskKind, { title: string; icon: string; addLabel: str
   study_session: { title: "جلسات المذاكرة", icon: "⏱️", addLabel: "+ جلسة" },
 };
 
+const SESSION_DURATIONS = [25, 45, 60];
+
+/** most relevant pending count for a subject row, e.g. "2 مهام" */
+function subjectSummary(subjectId: string, tasks: { subjectId?: string; kind?: TaskKind; done: boolean }[]) {
+  const pending = tasks.filter((t) => t.subjectId === subjectId && !t.done);
+  const taskCount = pending.filter((t) => (t.kind ?? "task") === "task").length;
+  const examCount = pending.filter((t) => t.kind === "exam").length;
+  const sessionCount = pending.filter((t) => t.kind === "study_session").length;
+  if (taskCount > 0) return `${taskCount} مهام`;
+  if (examCount > 0) return `${examCount} اختبار`;
+  if (sessionCount > 0) return `${sessionCount} جلسات مذاكرة`;
+  return null;
+}
+
 export default function Study() {
-  const { state, toggleTask } = useApp();
+  const { state, toggleTask, addTask } = useApp();
   const [subjectId, setSubjectId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState<TaskKind | null>(null);
+  const [addedDuration, setAddedDuration] = useState<number | null>(null);
 
   const weekKeys = useMemo(() => new Set(currentWeekKeys()), []);
   const weekTasks = state.tasks.filter((t) => weekKeys.has(t.when));
@@ -22,6 +39,16 @@ export default function Study() {
     task: weekTasks.filter((t) => (t.kind ?? "task") === "task").length,
     exam: weekTasks.filter((t) => t.kind === "exam").length,
     study_session: weekTasks.filter((t) => t.kind === "study_session").length,
+  };
+
+  const startQuickSession = (mins: number) => {
+    addTask({
+      title: `جلسة مذاكرة (${mins} دقيقة)`,
+      when: todayKey(),
+      priority: "normal",
+      kind: "study_session",
+    });
+    setAddedDuration(mins);
   };
 
   const subject = state.subjects.find((s) => s.id === subjectId) ?? null;
@@ -45,20 +72,30 @@ export default function Study() {
                     {label.addLabel}
                   </button>
                 </div>
-                <div className="mt-3 flex flex-col gap-1">
+                <div className="mt-3 flex flex-col">
                   {items.length === 0 && (
                     <p className="text-sm py-1.5" style={{ color: "var(--ink-faint)" }}>
                       لا شيء هنا بعد.
                     </p>
                   )}
-                  {items.map((t) => (
+                  {items.map((t, i) => (
                     <button
                       key={t.id}
                       onClick={() => toggleTask(t.id)}
-                      className="flex items-center gap-2.5 py-2 text-start"
+                      className="flex items-center gap-2.5 py-3 text-start"
+                      style={{ borderTop: i === 0 ? "none" : "1px solid var(--border)" }}
                     >
                       <span
-                        className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[11px]"
+                        className="text-[15px] flex-1"
+                        style={{
+                          color: t.done ? "var(--ink-faint)" : "var(--ink)",
+                          textDecoration: t.done ? "line-through" : "none",
+                        }}
+                      >
+                        {t.title}
+                      </span>
+                      <span
+                        className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[11px]"
                         style={{
                           background: t.done ? "var(--primary)" : "transparent",
                           border: t.done ? "none" : "2px solid var(--border)",
@@ -66,15 +103,6 @@ export default function Study() {
                         }}
                       >
                         {t.done ? "✓" : ""}
-                      </span>
-                      <span
-                        className="text-[15px]"
-                        style={{
-                          color: t.done ? "var(--ink-faint)" : "var(--ink)",
-                          textDecoration: t.done ? "line-through" : "none",
-                        }}
-                      >
-                        {t.title}
                       </span>
                     </button>
                   ))}
@@ -97,42 +125,73 @@ export default function Study() {
 
   return (
     <div className="flex-1 overflow-y-auto scroll-hide pb-6 fade-in">
-      <ScreenHeader title="📚 دراستي" />
-      <div className="px-5 flex flex-col gap-4 mt-1">
+      <BrandHeader />
+      <div className="px-5 flex flex-col gap-4 mt-3">
+        <HeroCard
+          eyebrowIcon="📚"
+          eyebrow="دراستي"
+          title="خطواتك الدراسية"
+          subtitle="رتّبي ما تحتاجينه دون أن تحولي الدراسة إلى ضغط."
+        />
+
         <div className="card">
-          <p className="section-title mb-3">هذا الأسبوع</p>
-          <div className="flex justify-between text-center">
-            <div className="flex-1">
-              <p className="text-2xl font-extrabold" style={{ color: "var(--primary-strong)" }}>
-                {weekCounts.task}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--ink-faint)" }}>مهام</p>
-            </div>
-            <div className="flex-1">
-              <p className="text-2xl font-extrabold" style={{ color: "var(--primary-strong)" }}>
-                {weekCounts.exam}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--ink-faint)" }}>اختبار</p>
-            </div>
-            <div className="flex-1">
-              <p className="text-2xl font-extrabold" style={{ color: "var(--primary-strong)" }}>
-                {weekCounts.study_session}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--ink-faint)" }}>جلسات مذاكرة</p>
-            </div>
+          <p className="section-title">هذا الأسبوع</p>
+          <div className="flex gap-2 mt-3 flex-wrap">
+            <span className="chip">{weekCounts.task} مهام</span>
+            <span className="chip">{weekCounts.exam} اختبار</span>
+            <span className="chip">{weekCounts.study_session} جلسات مذاكرة</span>
           </div>
         </div>
 
-        <div>
-          <p className="section-title mb-3 px-1">موادي</p>
-          <div className="grid grid-cols-2 gap-3">
-            {state.subjects.map((s) => (
-              <button key={s.id} onClick={() => setSubjectId(s.id)} className="card flex items-center gap-2.5">
-                <span className="text-2xl">{s.icon}</span>
-                <span className="font-bold text-[15px]">{s.name}</span>
+        <div className="card">
+          <p className="section-title">موادي</p>
+          <div className="mt-2 flex flex-col">
+            {state.subjects.map((s, i) => {
+              const summary = subjectSummary(s.id, state.tasks);
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSubjectId(s.id)}
+                  className="w-full flex items-center gap-3 py-3 text-start"
+                  style={{ borderTop: i === 0 ? "none" : "1px solid var(--border)" }}
+                >
+                  <span className="flex-1 flex items-baseline gap-2">
+                    <span className="font-bold text-[15px]">{s.name}</span>
+                    {summary && (
+                      <span className="text-sm" style={{ color: "var(--ink-faint)" }}>
+                        {summary}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-xl shrink-0">{s.icon}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="card">
+          <p className="section-title">⏱️ جلسة مذاكرة</p>
+          <p className="text-sm mt-1" style={{ color: "var(--ink-soft)" }}>
+            اختاري مدة بسيطة وابدئي.
+          </p>
+          <div className="flex gap-2 mt-3">
+            {SESSION_DURATIONS.map((mins) => (
+              <button
+                key={mins}
+                className="chip flex-1 text-center"
+                data-selected={addedDuration === mins}
+                onClick={() => startQuickSession(mins)}
+              >
+                {mins} دقيقة
               </button>
             ))}
           </div>
+          {addedDuration !== null && (
+            <p className="text-xs font-bold mt-3" style={{ color: "var(--primary-strong)" }}>
+              ✓ أُضيفت جلسة {addedDuration} دقيقة إلى مهام اليوم
+            </p>
+          )}
         </div>
       </div>
     </div>
