@@ -8,6 +8,7 @@ import IntentionSheet from "../components/IntentionSheet";
 import EveningReflectionSheet from "../components/EveningReflectionSheet";
 import BrandHeader from "../components/BrandHeader";
 import HeroCard from "../components/HeroCard";
+import DailyMessageCard from "../components/DailyMessageCard";
 import Sticker from "../components/Sticker";
 import type { PrayerName } from "../types";
 
@@ -48,6 +49,9 @@ export default function Home() {
           title={state.profile.name || "صديقتي"}
           subtitle={dayMotivationAr()}
         />
+
+        {/* رسالة اليوم */}
+        <DailyMessageCard />
 
         {/* النية */}
         <div

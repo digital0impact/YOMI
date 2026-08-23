@@ -2,6 +2,8 @@
 
 :root {
   --font-sans: "Tajawal", "Segoe UI", Tahoma, sans-serif;
+  /* classical Arabic serif, reserved for قصيدة/حكمة-style quotes */
+  --font-quote: "Amiri", "Traditional Arabic", serif;
 
   /* neutral palette (theme-independent) */
   --ink: #2f2a28;
@@ -109,6 +111,10 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 18px;
+}
+
+.font-quote {
+  font-family: var(--font-quote);
 }
 
 .section-title {
