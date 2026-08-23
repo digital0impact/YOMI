@@ -51,6 +51,12 @@ export default function Onboarding() {
           <p className="text-sm font-bold" style={{ color: "var(--primary-strong)" }}>
             نظمي يومك • طوري نفسك • اصنعي أثرًا
           </p>
+          <p
+            className="text-xs font-bold px-3.5 py-1.5 rounded-full mt-1"
+            style={{ background: "var(--primary-tint)", color: "var(--primary-strong)" }}
+          >
+            🎁 هدية من معلمتك أمل الشامان
+          </p>
           <button className="btn-primary w-full mt-4" onClick={() => setStep("name")}>
             ابدئي رحلتك
           </button>
