@@ -26,8 +26,16 @@ import type {
 } from "../types";
 import { DEFAULT_STICKER, DEFAULT_SUBJECTS, HABIT_OPTIONS } from "../data/constants";
 import { todayKey } from "../utils/date";
-import { isCloudConfigured } from "../lib/supabase";
-import { cloudPush, cloudRestoreSession, cloudSignIn, cloudSignOut, cloudSignUp, emailToUsername } from "./cloud";
+import { isCloudConfigured, supabase } from "../lib/supabase";
+import {
+  cloudPush,
+  cloudRequestPasswordReset,
+  cloudRestoreSession,
+  cloudSignIn,
+  cloudSignOut,
+  cloudSignUp,
+  cloudUpdatePassword,
+} from "./cloud";
 
 const STORAGE_KEY = "yomi.app.state.v1";
 
@@ -87,7 +95,7 @@ export interface CloudState {
   /** whether the repo owner has plugged in a Supabase project at all */
   configured: boolean;
   status: "signed_out" | "signed_in";
-  username: string | null;
+  email: string | null;
   userId: string | null;
   syncing: boolean;
   lastSyncedAt: number | null;
@@ -95,24 +103,36 @@ export interface CloudState {
   /** set right after signing in when a meaningful cloud backup was found,
    *  waiting for her to pick which copy of her data to keep */
   pendingRemoteState: AppState | null;
+  /** signUp succeeded but a confirmation email must be clicked before she
+   *  can actually sign in (depends on the project's "Confirm email" setting) */
+  needsEmailConfirmation: boolean;
+  /** she followed a "reset password" email link and should set a new one */
+  passwordRecovery: boolean;
+  /** a "check your email" notice after requesting a password reset */
+  resetEmailSent: boolean;
 }
 
 const DEFAULT_CLOUD_STATE: CloudState = {
   configured: isCloudConfigured,
   status: "signed_out",
-  username: null,
+  email: null,
   userId: null,
   syncing: false,
   lastSyncedAt: null,
   error: null,
   pendingRemoteState: null,
+  needsEmailConfirmation: false,
+  passwordRecovery: false,
+  resetEmailSent: false,
 };
 
 interface Ctx {
   state: AppState;
   cloud: CloudState;
-  signUpCloud: (username: string, password: string) => Promise<boolean>;
-  signInCloud: (username: string, password: string) => Promise<boolean>;
+  signUpCloud: (email: string, password: string) => Promise<boolean>;
+  signInCloud: (email: string, password: string) => Promise<boolean>;
+  requestPasswordReset: (email: string) => Promise<boolean>;
+  updatePassword: (newPassword: string) => Promise<boolean>;
   signOutCloud: () => Promise<void>;
   resolveCloudConflict: (choice: "remote" | "local") => Promise<void>;
   syncNow: () => Promise<void>;
@@ -187,7 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...c,
         status: "signed_in",
         userId: session.userId,
-        username: emailToUsername(session.email),
+        email: session.email,
       }));
     });
     return () => {
@@ -195,17 +215,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // listen for her clicking a "reset password" email link — Supabase opens
+  // this exact page with a recovery session and fires this event
+  useEffect(() => {
+    if (!supabase) return;
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setCloud((c) => ({
+          ...c,
+          status: "signed_in",
+          passwordRecovery: true,
+          userId: session?.user.id ?? c.userId,
+          email: session?.user.email ?? c.email,
+        }));
+      }
+    });
+    return () => subscription.subscription.unsubscribe();
+  }, []);
+
   // auto-backup a couple seconds after her last change, while signed in and
   // there's no unresolved "which copy do you want to keep" choice pending
   useEffect(() => {
-    if (cloud.status !== "signed_in" || !cloud.userId || !cloud.username || cloud.pendingRemoteState) {
+    if (
+      cloud.status !== "signed_in" ||
+      !cloud.userId ||
+      cloud.pendingRemoteState ||
+      cloud.passwordRecovery
+    ) {
       return;
     }
     const userId = cloud.userId;
-    const username = cloud.username;
     const timer = setTimeout(() => {
       setCloud((c) => ({ ...c, syncing: true }));
-      cloudPush(userId, username, state)
+      cloudPush(userId, state)
         .then(() => setCloud((c) => ({ ...c, syncing: false, lastSyncedAt: Date.now(), error: null })))
         .catch((err: unknown) =>
           setCloud((c) => ({
@@ -216,22 +258,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
         );
     }, 2000);
     return () => clearTimeout(timer);
-  }, [state, cloud.status, cloud.userId, cloud.username, cloud.pendingRemoteState]);
+  }, [state, cloud.status, cloud.userId, cloud.pendingRemoteState, cloud.passwordRecovery]);
 
   const signUpCloud = useCallback(
-    async (username: string, password: string) => {
-      setCloud((c) => ({ ...c, error: null, syncing: true }));
+    async (email: string, password: string) => {
+      setCloud((c) => ({ ...c, error: null, syncing: true, resetEmailSent: false }));
       try {
-        const userId = await cloudSignUp(username, password, state);
+        const { userId, needsConfirmation } = await cloudSignUp(email, password, state);
+        if (needsConfirmation) {
+          setCloud({
+            ...DEFAULT_CLOUD_STATE,
+            configured: true,
+            needsEmailConfirmation: true,
+          });
+          return true;
+        }
         setCloud({
+          ...DEFAULT_CLOUD_STATE,
           configured: true,
           status: "signed_in",
-          username,
+          email,
           userId,
-          syncing: false,
           lastSyncedAt: Date.now(),
-          error: null,
-          pendingRemoteState: null,
         });
         return true;
       } catch (err) {
@@ -243,33 +291,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const signInCloud = useCallback(
-    async (username: string, password: string) => {
-      setCloud((c) => ({ ...c, error: null, syncing: true }));
+    async (email: string, password: string) => {
+      setCloud((c) => ({ ...c, error: null, syncing: true, needsEmailConfirmation: false, resetEmailSent: false }));
       try {
-        const { userId, remoteState } = await cloudSignIn(username, password);
+        const { userId, remoteState } = await cloudSignIn(email, password);
         const hasMeaningfulRemote = Boolean(remoteState?.profile?.onboarded);
         if (hasMeaningfulRemote) {
           setCloud({
+            ...DEFAULT_CLOUD_STATE,
             configured: true,
             status: "signed_in",
-            username,
+            email,
             userId,
-            syncing: false,
             lastSyncedAt: null,
-            error: null,
             pendingRemoteState: remoteState,
           });
         } else {
-          await cloudPush(userId, username, state);
+          await cloudPush(userId, state);
           setCloud({
+            ...DEFAULT_CLOUD_STATE,
             configured: true,
             status: "signed_in",
-            username,
+            email,
             userId,
-            syncing: false,
             lastSyncedAt: Date.now(),
-            error: null,
-            pendingRemoteState: null,
           });
         }
         return true;
@@ -290,8 +335,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (choice: "remote" | "local") => {
       const remote = cloud.pendingRemoteState;
       const userId = cloud.userId;
-      const username = cloud.username;
-      if (!remote || !userId || !username) return;
+      if (!remote || !userId) return;
       if (choice === "remote") {
         setState(mergeWithDefaults(remote));
         setCloud((c) => ({ ...c, pendingRemoteState: null, lastSyncedAt: Date.now(), error: null }));
@@ -299,25 +343,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       setCloud((c) => ({ ...c, syncing: true }));
       try {
-        await cloudPush(userId, username, state);
+        await cloudPush(userId, state);
         setCloud((c) => ({ ...c, syncing: false, pendingRemoteState: null, lastSyncedAt: Date.now(), error: null }));
       } catch (err) {
         setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّرت المزامنة." }));
       }
     },
-    [cloud.pendingRemoteState, cloud.userId, cloud.username, state]
+    [cloud.pendingRemoteState, cloud.userId, state]
   );
 
   const syncNow = useCallback(async () => {
-    if (cloud.status !== "signed_in" || !cloud.userId || !cloud.username) return;
+    if (cloud.status !== "signed_in" || !cloud.userId) return;
     setCloud((c) => ({ ...c, syncing: true, error: null }));
     try {
-      await cloudPush(cloud.userId, cloud.username, state);
+      await cloudPush(cloud.userId, state);
       setCloud((c) => ({ ...c, syncing: false, lastSyncedAt: Date.now() }));
     } catch (err) {
       setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّرت المزامنة." }));
     }
-  }, [cloud.status, cloud.userId, cloud.username, state]);
+  }, [cloud.status, cloud.userId, state]);
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    setCloud((c) => ({ ...c, error: null, syncing: true }));
+    try {
+      await cloudRequestPasswordReset(email);
+      setCloud((c) => ({ ...c, syncing: false, resetEmailSent: true }));
+      return true;
+    } catch (err) {
+      setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّر إرسال الرابط." }));
+      return false;
+    }
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    setCloud((c) => ({ ...c, error: null, syncing: true }));
+    try {
+      await cloudUpdatePassword(newPassword);
+      setCloud((c) => ({ ...c, syncing: false, passwordRecovery: false, lastSyncedAt: Date.now() }));
+      return true;
+    } catch (err) {
+      setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّر تحديث كلمة المرور." }));
+      return false;
+    }
+  }, []);
 
   const setProfileName = useCallback((name: string) => {
     setState((s) => ({ ...s, profile: { ...s.profile, name } }));
@@ -524,6 +592,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       signOutCloud,
       resolveCloudConflict,
       syncNow,
+      requestPasswordReset,
+      updatePassword,
       setProfileName,
       setInterests,
       completeOnboarding,
@@ -556,6 +626,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       signOutCloud,
       resolveCloudConflict,
       syncNow,
+      requestPasswordReset,
+      updatePassword,
       setProfileName,
       setInterests,
       completeOnboarding,

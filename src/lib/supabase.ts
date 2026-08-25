@@ -10,19 +10,8 @@ export const supabase: SupabaseClient | null = isCloudConfigured
   ? createClient(url as string, anonKey as string)
   : null;
 
-/**
- * Students never see or type an email — a username is turned into a fake
- * one so we can reuse Supabase's battle-tested email/password auth
- * (hashing, sessions, password reset plumbing) behind a simple "custom
- * login" UI. Requires "Confirm email" to be OFF in the Supabase project's
- * Auth settings, since this fake address can never receive mail.
- */
-export function usernameToEmail(username: string): string {
-  return `${username.trim().toLowerCase()}@yomi.local`;
-}
-
-// kept ASCII-only: it becomes an email local-part under the hood, and not
-// every mail validator handles non-ASCII local-parts reliably
-export function isValidUsername(username: string): boolean {
-  return /^[a-z0-9_]{3,24}$/i.test(username.trim());
+// a real email, so Supabase's built-in "forgot password" flow works without
+// any custom infrastructure — a deliberately simple check, not full RFC 5322
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }

@@ -1,4 +1,4 @@
-import { supabase, usernameToEmail } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 import type { AppState } from "../types";
 
 /** thrown with Arabic messages meant to be shown to the student directly */
@@ -12,46 +12,51 @@ function requireClient() {
 function friendlyAuthError(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("already registered") || m.includes("already exists")) {
-    return "اسم المستخدم هذا محجوز، جرّبي اسمًا آخر أو سجّلي الدخول به.";
+    return "هذا البريد مسجَّل من قبل، جرّبي تسجيل الدخول به بدلًا من إنشاء حساب جديد.";
   }
   if (m.includes("invalid login credentials")) {
-    return "اسم المستخدم أو كلمة المرور غير صحيحة.";
+    return "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
   }
   if (m.includes("password") && (m.includes("least") || m.includes("short"))) {
     return "كلمة المرور قصيرة، اختاري ٦ أحرف على الأقل.";
   }
   if (m.includes("email not confirmed")) {
-    return "الحساب بانتظار تفعيل — أخبري معلمتك، على الأرجح يحتاج إعداد التطبيق لتعديل بسيط.";
+    return "الحساب بانتظار تأكيد البريد الإلكتروني — تحققي من صندوق الوارد (أو الرسائل غير المرغوبة).";
+  }
+  if (m.includes("email") && m.includes("invalid")) {
+    return "هذا البريد الإلكتروني غير صالح.";
   }
   return "حدث خطأ غير متوقع، حاولي مرة أخرى.";
 }
 
 export async function cloudSignUp(
-  username: string,
+  email: string,
   password: string,
   initialState: AppState
-): Promise<string> {
+): Promise<{ userId: string; needsConfirmation: boolean }> {
   const client = requireClient();
-  const email = usernameToEmail(username);
   const { data, error } = await client.auth.signUp({ email, password });
   if (error) throw new CloudError(friendlyAuthError(error.message));
   const userId = data.user?.id;
-  if (!userId) {
-    throw new CloudError("تعذّر إنشاء الحساب. تأكدي أن تأكيد البريد معطّل في إعدادات Supabase.");
+  if (!userId) throw new CloudError("تعذّر إنشاء الحساب، حاولي مرة أخرى.");
+  if (!data.session) {
+    // "Confirm email" is ON for this project: no session yet, so we can't
+    // write her profile row (RLS requires an authenticated auth.uid()).
+    // It gets created on her first successful sign-in after confirming.
+    return { userId, needsConfirmation: true };
   }
   const { error: upsertError } = await client
     .from("profiles")
-    .upsert({ id: userId, username, app_state: initialState });
+    .upsert({ id: userId, app_state: initialState });
   if (upsertError) throw new CloudError(friendlyAuthError(upsertError.message));
-  return userId;
+  return { userId, needsConfirmation: false };
 }
 
 export async function cloudSignIn(
-  username: string,
+  email: string,
   password: string
 ): Promise<{ userId: string; remoteState: AppState | null }> {
   const client = requireClient();
-  const email = usernameToEmail(username);
   const { data, error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw new CloudError(friendlyAuthError(error.message));
   const userId = data.user?.id;
@@ -70,9 +75,9 @@ export async function cloudSignOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
-export async function cloudPush(userId: string, username: string, state: AppState): Promise<void> {
+export async function cloudPush(userId: string, state: AppState): Promise<void> {
   const client = requireClient();
-  const { error } = await client.from("profiles").upsert({ id: userId, username, app_state: state });
+  const { error } = await client.from("profiles").upsert({ id: userId, app_state: state });
   if (error) throw new CloudError(friendlyAuthError(error.message));
 }
 
@@ -84,7 +89,18 @@ export async function cloudRestoreSession(): Promise<{ userId: string; email: st
   return { userId: user.id, email: user.email };
 }
 
-/** the fake email is `${username}@yomi.local` — recover the username back out of it */
-export function emailToUsername(email: string): string {
-  return email.split("@")[0];
+/** sends her a "reset your password" email; redirects back to this same page */
+export async function cloudRequestPasswordReset(email: string): Promise<void> {
+  const client = requireClient();
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+  if (error) throw new CloudError(friendlyAuthError(error.message));
+}
+
+/** call once she's followed the reset link and is ready to set a new password */
+export async function cloudUpdatePassword(newPassword: string): Promise<void> {
+  const client = requireClient();
+  const { error } = await client.auth.updateUser({ password: newPassword });
+  if (error) throw new CloudError(friendlyAuthError(error.message));
 }
