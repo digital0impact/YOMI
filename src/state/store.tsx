@@ -26,6 +26,8 @@ import type {
 } from "../types";
 import { DEFAULT_STICKER, DEFAULT_SUBJECTS, HABIT_OPTIONS } from "../data/constants";
 import { todayKey } from "../utils/date";
+import { isCloudConfigured } from "../lib/supabase";
+import { cloudPush, cloudRestoreSession, cloudSignIn, cloudSignOut, cloudSignUp, emailToUsername } from "./cloud";
 
 const STORAGE_KEY = "yomi.app.state.v1";
 
@@ -59,16 +61,19 @@ function defaultState(): AppState {
   };
 }
 
+// merges a partial/older AppState with fresh defaults, so new fields (added
+// after this data was saved — locally or in a cloud backup) get sane
+// defaults instead of ending up undefined. profile is merged one level deep.
+function mergeWithDefaults(partial: Partial<AppState>): AppState {
+  const defaults = defaultState();
+  return { ...defaults, ...partial, profile: { ...defaults.profile, ...partial.profile } };
+}
+
 function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    const defaults = defaultState();
-    // merge with defaults to survive schema growth between versions
-    // (profile is merged one level deep so new profile fields, like a
-    // freshly-added sticker, get their default on old saved states)
-    return { ...defaults, ...parsed, profile: { ...defaults.profile, ...parsed.profile } };
+    return mergeWithDefaults(JSON.parse(raw));
   } catch {
     return defaultState();
   }
@@ -78,8 +83,39 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
 
+export interface CloudState {
+  /** whether the repo owner has plugged in a Supabase project at all */
+  configured: boolean;
+  status: "signed_out" | "signed_in";
+  username: string | null;
+  userId: string | null;
+  syncing: boolean;
+  lastSyncedAt: number | null;
+  error: string | null;
+  /** set right after signing in when a meaningful cloud backup was found,
+   *  waiting for her to pick which copy of her data to keep */
+  pendingRemoteState: AppState | null;
+}
+
+const DEFAULT_CLOUD_STATE: CloudState = {
+  configured: isCloudConfigured,
+  status: "signed_out",
+  username: null,
+  userId: null,
+  syncing: false,
+  lastSyncedAt: null,
+  error: null,
+  pendingRemoteState: null,
+};
+
 interface Ctx {
   state: AppState;
+  cloud: CloudState;
+  signUpCloud: (username: string, password: string) => Promise<boolean>;
+  signInCloud: (username: string, password: string) => Promise<boolean>;
+  signOutCloud: () => Promise<void>;
+  resolveCloudConflict: (choice: "remote" | "local") => Promise<void>;
+  syncNow: () => Promise<void>;
   setProfileName: (name: string) => void;
   setInterests: (ids: AppState["profile"]["interests"]) => void;
   completeOnboarding: (habitIds: string[], theme: ThemeId) => void;
@@ -125,6 +161,7 @@ const AppContext = createContext<Ctx | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(loadState);
+  const [cloud, setCloud] = useState<CloudState>(DEFAULT_CLOUD_STATE);
 
   useEffect(() => {
     try {
@@ -139,6 +176,148 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", state.profile.theme);
   }, [state.profile.theme]);
+
+  // restore an existing Supabase session across reloads on the same device
+  useEffect(() => {
+    if (!isCloudConfigured) return;
+    let cancelled = false;
+    cloudRestoreSession().then((session) => {
+      if (cancelled || !session) return;
+      setCloud((c) => ({
+        ...c,
+        status: "signed_in",
+        userId: session.userId,
+        username: emailToUsername(session.email),
+      }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // auto-backup a couple seconds after her last change, while signed in and
+  // there's no unresolved "which copy do you want to keep" choice pending
+  useEffect(() => {
+    if (cloud.status !== "signed_in" || !cloud.userId || !cloud.username || cloud.pendingRemoteState) {
+      return;
+    }
+    const userId = cloud.userId;
+    const username = cloud.username;
+    const timer = setTimeout(() => {
+      setCloud((c) => ({ ...c, syncing: true }));
+      cloudPush(userId, username, state)
+        .then(() => setCloud((c) => ({ ...c, syncing: false, lastSyncedAt: Date.now(), error: null })))
+        .catch((err: unknown) =>
+          setCloud((c) => ({
+            ...c,
+            syncing: false,
+            error: err instanceof Error ? err.message : "تعذّرت المزامنة.",
+          }))
+        );
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [state, cloud.status, cloud.userId, cloud.username, cloud.pendingRemoteState]);
+
+  const signUpCloud = useCallback(
+    async (username: string, password: string) => {
+      setCloud((c) => ({ ...c, error: null, syncing: true }));
+      try {
+        const userId = await cloudSignUp(username, password, state);
+        setCloud({
+          configured: true,
+          status: "signed_in",
+          username,
+          userId,
+          syncing: false,
+          lastSyncedAt: Date.now(),
+          error: null,
+          pendingRemoteState: null,
+        });
+        return true;
+      } catch (err) {
+        setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّر إنشاء الحساب." }));
+        return false;
+      }
+    },
+    [state]
+  );
+
+  const signInCloud = useCallback(
+    async (username: string, password: string) => {
+      setCloud((c) => ({ ...c, error: null, syncing: true }));
+      try {
+        const { userId, remoteState } = await cloudSignIn(username, password);
+        const hasMeaningfulRemote = Boolean(remoteState?.profile?.onboarded);
+        if (hasMeaningfulRemote) {
+          setCloud({
+            configured: true,
+            status: "signed_in",
+            username,
+            userId,
+            syncing: false,
+            lastSyncedAt: null,
+            error: null,
+            pendingRemoteState: remoteState,
+          });
+        } else {
+          await cloudPush(userId, username, state);
+          setCloud({
+            configured: true,
+            status: "signed_in",
+            username,
+            userId,
+            syncing: false,
+            lastSyncedAt: Date.now(),
+            error: null,
+            pendingRemoteState: null,
+          });
+        }
+        return true;
+      } catch (err) {
+        setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّر تسجيل الدخول." }));
+        return false;
+      }
+    },
+    [state]
+  );
+
+  const signOutCloud = useCallback(async () => {
+    await cloudSignOut();
+    setCloud({ ...DEFAULT_CLOUD_STATE, configured: isCloudConfigured });
+  }, []);
+
+  const resolveCloudConflict = useCallback(
+    async (choice: "remote" | "local") => {
+      const remote = cloud.pendingRemoteState;
+      const userId = cloud.userId;
+      const username = cloud.username;
+      if (!remote || !userId || !username) return;
+      if (choice === "remote") {
+        setState(mergeWithDefaults(remote));
+        setCloud((c) => ({ ...c, pendingRemoteState: null, lastSyncedAt: Date.now(), error: null }));
+        return;
+      }
+      setCloud((c) => ({ ...c, syncing: true }));
+      try {
+        await cloudPush(userId, username, state);
+        setCloud((c) => ({ ...c, syncing: false, pendingRemoteState: null, lastSyncedAt: Date.now(), error: null }));
+      } catch (err) {
+        setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّرت المزامنة." }));
+      }
+    },
+    [cloud.pendingRemoteState, cloud.userId, cloud.username, state]
+  );
+
+  const syncNow = useCallback(async () => {
+    if (cloud.status !== "signed_in" || !cloud.userId || !cloud.username) return;
+    setCloud((c) => ({ ...c, syncing: true, error: null }));
+    try {
+      await cloudPush(cloud.userId, cloud.username, state);
+      setCloud((c) => ({ ...c, syncing: false, lastSyncedAt: Date.now() }));
+    } catch (err) {
+      setCloud((c) => ({ ...c, syncing: false, error: err instanceof Error ? err.message : "تعذّرت المزامنة." }));
+    }
+  }, [cloud.status, cloud.userId, cloud.username, state]);
 
   const setProfileName = useCallback((name: string) => {
     setState((s) => ({ ...s, profile: { ...s.profile, name } }));
@@ -339,6 +518,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       state,
+      cloud,
+      signUpCloud,
+      signInCloud,
+      signOutCloud,
+      resolveCloudConflict,
+      syncNow,
       setProfileName,
       setInterests,
       completeOnboarding,
@@ -365,6 +550,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
+      cloud,
+      signUpCloud,
+      signInCloud,
+      signOutCloud,
+      resolveCloudConflict,
+      syncNow,
       setProfileName,
       setInterests,
       completeOnboarding,

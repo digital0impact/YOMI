@@ -26,6 +26,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # optional: only needed for the cloud backup/sync feature (مساحتي
+          # -> الحساب والمزامنة). Add these as repo secrets (Settings ->
+          # Secrets and variables -> Actions) to enable it; leave them unset
+          # and the app builds and runs fine without that feature. Vite
+          # bakes VITE_-prefixed vars into the build, so they must be set
+          # here, not just in a local .env file.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/configure-pages@v5
         with:
           # attempts to auto-create the Pages site; the default

@@ -3,10 +3,11 @@ import { useApp } from "../state/store";
 import ScreenHeader from "../components/ScreenHeader";
 import Sheet from "../components/Sheet";
 import Sticker from "../components/Sticker";
+import CloudAccountSheet from "../components/CloudAccountSheet";
 import { STICKERS, THEMES } from "../data/constants";
 import type { TabId } from "../components/BottomNav";
 
-type SheetId = "name" | "theme" | "sticker" | "notes" | "settings" | null;
+type SheetId = "name" | "theme" | "sticker" | "notes" | "settings" | "cloud" | null;
 
 function NameSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { state, setProfileName } = useApp();
@@ -173,7 +174,7 @@ function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }
 }
 
 export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: TabId) => void; onOpenImpact: () => void }) {
-  const { state } = useApp();
+  const { state, cloud } = useApp();
   const [sheet, setSheet] = useState<SheetId>(null);
 
   const items: { id: string; label: string; icon: string; onClick: () => void }[] = [
@@ -183,6 +184,16 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
     { id: "habits", label: "عاداتي", icon: "🌱", onClick: () => onNavigate("habits") },
     { id: "goals", label: "أهدافي", icon: "🎯", onClick: () => onNavigate("goals") },
     { id: "impact", label: "آثاري", icon: "🤍", onClick: onOpenImpact },
+    ...(cloud.configured
+      ? [
+          {
+            id: "cloud",
+            label: cloud.status === "signed_in" ? "الحساب والمزامنة" : "نسخة احتياطية سحابية",
+            icon: "☁️",
+            onClick: () => setSheet("cloud"),
+          },
+        ]
+      : []),
     { id: "notes", label: "ملاحظاتي", icon: "📝", onClick: () => setSheet("notes") },
     { id: "settings", label: "إعدادات التطبيق", icon: "⚙️", onClick: () => setSheet("settings") },
   ];
@@ -229,6 +240,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
       <NameSheet open={sheet === "name"} onClose={() => setSheet(null)} />
       <ThemeSheet open={sheet === "theme"} onClose={() => setSheet(null)} />
       <StickerSheet open={sheet === "sticker"} onClose={() => setSheet(null)} />
+      {cloud.configured && <CloudAccountSheet open={sheet === "cloud"} onClose={() => setSheet(null)} />}
       <NotesSheet open={sheet === "notes"} onClose={() => setSheet(null)} />
       <SettingsSheet open={sheet === "settings"} onClose={() => setSheet(null)} />
     </div>
