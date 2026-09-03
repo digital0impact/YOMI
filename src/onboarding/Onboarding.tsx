@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "../state/store";
 import { HABIT_OPTIONS, INTERESTS, THEMES } from "../data/constants";
+import Mascot from "../components/Mascot";
 import type { InterestId, ThemeId } from "../types";
 
 type Step = "welcome" | "name" | "interests" | "habits" | "theme";
@@ -36,11 +37,9 @@ export default function Onboarding() {
     <div className="app-shell items-center justify-center px-6 py-10 fade-in">
       {step === "welcome" && (
         <div className="flex flex-col items-center text-center gap-5 max-w-sm">
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-5xl"
-            style={{ background: "linear-gradient(135deg, var(--gradient-a), var(--gradient-b))" }}
-          >
-            🌷
+          <div className="relative w-32 h-32 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full pattern-dots" />
+            <Mascot size={112} />
           </div>
           <h1 className="text-2xl font-extrabold">أهلاً بكِ</h1>
           <p className="text-[15px] leading-8" style={{ color: "var(--ink-soft)" }}>
@@ -50,6 +49,9 @@ export default function Onboarding() {
           </p>
           <p className="text-sm font-bold" style={{ color: "var(--primary-strong)" }}>
             نظمي يومك • طوري نفسك • اصنعي أثرًا
+          </p>
+          <p className="text-sm font-bold" style={{ color: "var(--ink-faint)" }}>
+            وأنا نوتة 🐱، رفيقتك في الطريق
           </p>
           <p
             className="text-xs font-bold px-3.5 py-1.5 rounded-full mt-1"

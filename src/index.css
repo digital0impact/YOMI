@@ -1,66 +1,74 @@
 @import "tailwindcss";
 
 :root {
-  --font-sans: "Tajawal", "Segoe UI", Tahoma, sans-serif;
+  --font-sans: "Almarai", "Segoe UI", Tahoma, sans-serif;
+  /* رونق ولعب — للعناوين والأسماء الكبيرة */
+  --font-display: "Baloo Bhaijaan 2", "Almarai", sans-serif;
   /* classical Arabic serif, reserved for قصيدة/حكمة-style quotes */
   --font-quote: "Amiri", "Traditional Arabic", serif;
 
   /* neutral palette (theme-independent) */
-  --ink: #2f2a28;
-  --ink-soft: #6f6663;
-  --ink-faint: #a79f9b;
-  --page: #fffaf7;
+  --ink: #5c4a5e;
+  --ink-soft: #8b7a8d;
+  --ink-faint: #b7abb8;
+  --page: #fff9fb;
   --surface: #ffffff;
-  --border: #efe6e1;
+  --border: #f3e4ea;
+  --shadow-soft: rgba(92, 74, 94, 0.12);
+  --shadow-btn: rgba(92, 74, 94, 0.22);
 
-  /* default theme: وردي هادئ (calm rose) */
-  --primary: #d9748c;
-  --primary-strong: #c05c76;
-  --primary-tint: #fdf1f4;
-  --primary-tint-2: #f7c9d4;
-  --accent: #f0b8c4;
-  --gradient-a: #fbdde4;
-  --gradient-b: #f6c9d6;
+  /* default theme: علكة وردية (bubblegum pink) */
+  --primary: #e8899f;
+  --primary-strong: #d3728b;
+  --primary-tint: #ffeaf0;
+  --primary-tint-2: #ffb5c9;
+  --accent: #ffb5c9;
+  --gradient-a: #ffeaf0;
+  --gradient-b: #ffd3de;
 }
 
 [data-theme="lavender"] {
-  --primary: #9b8ac4;
-  --primary-strong: #8171ad;
-  --primary-tint: #f4f1fb;
-  --primary-tint-2: #d6ccef;
-  --accent: #c3b5e8;
-  --gradient-a: #e7e1f8;
-  --gradient-b: #d3c6ef;
+  /* لافندر حليبي */
+  --primary: #b49fda;
+  --primary-strong: #9c84c9;
+  --primary-tint: #f3edfb;
+  --primary-tint-2: #d8c7f0;
+  --accent: #d8c7f0;
+  --gradient-a: #f3edfb;
+  --gradient-b: #e3d7f5;
 }
 
 [data-theme="green"] {
-  --primary: #7ca982;
-  --primary-strong: #5f8d66;
-  --primary-tint: #f0f6f1;
-  --primary-tint-2: #c6e0cb;
-  --accent: #a9cdb0;
-  --gradient-a: #e3f0e4;
-  --gradient-b: #c9e4cd;
+  /* نعناع كريمي */
+  --primary: #8fcbaf;
+  --primary-strong: #74b597;
+  --primary-tint: #eafaf3;
+  --primary-tint-2: #b8e8d4;
+  --accent: #b8e8d4;
+  --gradient-a: #eafaf3;
+  --gradient-b: #d3f1e4;
 }
 
 [data-theme="sky"] {
-  --primary: #6fa8c7;
-  --primary-strong: #4f8bab;
-  --primary-tint: #eff6fa;
-  --primary-tint-2: #c3e1ee;
-  --accent: #9ec7dc;
-  --gradient-a: #e2f1f7;
-  --gradient-b: #c6e3ee;
+  /* سماء قطنية */
+  --primary: #7fbfda;
+  --primary-strong: #63a8c4;
+  --primary-tint: #e9f7fc;
+  --primary-tint-2: #aee0f5;
+  --accent: #aee0f5;
+  --gradient-a: #e9f7fc;
+  --gradient-b: #d2eff9;
 }
 
 [data-theme="beige"] {
-  --primary: #b98f63;
-  --primary-strong: #9c7449;
-  --primary-tint: #faf4ec;
-  --primary-tint-2: #e8d5bc;
-  --accent: #d5b98f;
-  --gradient-a: #f4e8d7;
-  --gradient-b: #e9d3b4;
+  /* زبدة صفراء */
+  --primary: #e8c86b;
+  --primary-strong: #d1af4e;
+  --primary-tint: #fff7e0;
+  --primary-tint-2: #ffe8a3;
+  --accent: #ffe8a3;
+  --gradient-a: #fff7e0;
+  --gradient-b: #ffefc2;
 }
 
 * {
@@ -90,6 +98,13 @@ textarea {
   font-family: inherit;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  margin: 0;
+}
+
 ::selection {
   background: var(--primary-tint-2);
 }
@@ -108,9 +123,14 @@ textarea {
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 22px;
   padding: 18px;
+  box-shadow: 3px 3px 0 var(--shadow-soft);
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 .font-quote {
@@ -118,8 +138,9 @@ textarea {
 }
 
 .section-title {
-  font-weight: 800;
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -131,14 +152,16 @@ textarea {
   border: none;
   border-radius: 999px;
   padding: 13px 22px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
-  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 3px 3px 0 var(--shadow-btn);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .btn-primary:active {
-  transform: scale(0.97);
+  transform: translate(1.5px, 1.5px) scale(0.99);
   background: var(--primary-strong);
+  box-shadow: 1.5px 1.5px 0 var(--shadow-btn);
 }
 
 .btn-ghost {
@@ -170,6 +193,7 @@ textarea {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
+  box-shadow: 2px 2px 0 var(--shadow-btn);
 }
 
 .pill-count {
@@ -193,6 +217,15 @@ textarea {
   height: 100%;
   border-radius: 999px;
   transition: width 0.4s ease;
+}
+
+/* نقشة نجوم — لمسة زخرفية اختيارية خلف المحتوى */
+.pattern-dots {
+  background-image: radial-gradient(var(--primary-strong) 1.6px, transparent 1.6px),
+    radial-gradient(var(--accent) 1.6px, transparent 1.6px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  opacity: 0.3;
 }
 
 .scroll-hide::-webkit-scrollbar {

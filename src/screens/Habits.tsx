@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "../state/store";
 import ScreenHeader from "../components/ScreenHeader";
 import Sheet from "../components/Sheet";
+import Mascot from "../components/Mascot";
 import { ENCOURAGEMENTS, HABIT_OPTIONS } from "../data/constants";
 import { currentWeekKeys, todayKey } from "../utils/date";
 
@@ -82,7 +83,9 @@ export default function Habits() {
       <div className="px-5 flex flex-col gap-4 mt-1">
         {state.habits.length === 0 && (
           <div className="card text-center py-8">
-            <p className="text-3xl mb-2">🌱</p>
+            <div className="flex justify-center mb-2">
+              <Mascot size={64} />
+            </div>
             <p className="font-bold">لا عادات بعد</p>
             <p className="text-sm mt-1" style={{ color: "var(--ink-faint)" }}>
               ابدئي بعادة صغيرة واحدة.

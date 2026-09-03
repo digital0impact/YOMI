@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Sheet from "./Sheet";
+import Mascot from "./Mascot";
 import { INTENTION_FULFILLMENT, MOODS } from "../data/constants";
 import { useApp } from "../state/store";
 import type { IntentionFulfillment, Mood } from "../types";
@@ -137,7 +138,7 @@ export default function EveningReflectionSheet({
 
       {stage === "done" && (
         <div className="flex flex-col items-center text-center gap-3 py-4">
-          <span className="text-4xl">🌷</span>
+          <Mascot size={80} />
           <p className="font-extrabold text-lg">الحمد لله على يومك</p>
           <p style={{ color: "var(--ink-soft)" }}>غدًا فرصة جديدة لخطوة جميلة.</p>
           <button

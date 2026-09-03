@@ -1,11 +1,11 @@
 import type { InterestId, IntentionCategory, IntentionFulfillment, Subject, ThemeId } from "../types";
 
 export const THEMES: { id: ThemeId; label: string; emoji: string; swatch: string }[] = [
-  { id: "rose", label: "وردي هادئ", emoji: "🌸", swatch: "#D9748C" },
-  { id: "lavender", label: "لافندر", emoji: "💜", swatch: "#9B8AC4" },
-  { id: "green", label: "أخضر هادئ", emoji: "🌿", swatch: "#7CA982" },
-  { id: "sky", label: "أزرق سماوي", emoji: "🩵", swatch: "#6FA8C7" },
-  { id: "beige", label: "بيج دافئ", emoji: "🤎", swatch: "#B98F63" },
+  { id: "rose", label: "علكة وردية", emoji: "🩷", swatch: "#E8899F" },
+  { id: "lavender", label: "لافندر حليبي", emoji: "💜", swatch: "#B49FDA" },
+  { id: "green", label: "نعناع كريمي", emoji: "🌿", swatch: "#8FCBAF" },
+  { id: "sky", label: "سماء قطنية", emoji: "🩵", swatch: "#7FBFDA" },
+  { id: "beige", label: "زبدة صفراء", emoji: "🧈", swatch: "#E8C86B" },
 ];
 
 export const DEFAULT_STICKER = "/stickers/tulip.svg";

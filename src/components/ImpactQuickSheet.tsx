@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Sheet from "./Sheet";
+import Mascot from "./Mascot";
 import { IMPACT_TAGS } from "../data/constants";
 import { useApp } from "../state/store";
 
@@ -92,7 +93,7 @@ export default function ImpactQuickSheet({
 
       {stage === "done" && (
         <div className="flex flex-col items-center text-center gap-3 py-4">
-          <span className="text-4xl">🌷</span>
+          <Mascot size={80} />
           <p className="font-extrabold text-lg">الحمد لله على التوفيق للخير</p>
           <button
             className="btn-ghost mt-3"
