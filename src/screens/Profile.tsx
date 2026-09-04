@@ -4,10 +4,11 @@ import ScreenHeader from "../components/ScreenHeader";
 import Sheet from "../components/Sheet";
 import Sticker from "../components/Sticker";
 import CloudAccountSheet from "../components/CloudAccountSheet";
+import InstallAppSheet from "../components/InstallAppSheet";
 import { STICKERS, THEMES } from "../data/constants";
 import type { TabId } from "../components/BottomNav";
 
-type SheetId = "name" | "theme" | "sticker" | "notes" | "settings" | "cloud" | null;
+type SheetId = "name" | "theme" | "sticker" | "notes" | "settings" | "cloud" | "install" | null;
 
 function NameSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { state, setProfileName } = useApp();
@@ -194,6 +195,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
           },
         ]
       : []),
+    { id: "install", label: "تثبيت التطبيق", icon: "📲", onClick: () => setSheet("install") },
     { id: "notes", label: "ملاحظاتي", icon: "📝", onClick: () => setSheet("notes") },
     { id: "settings", label: "إعدادات التطبيق", icon: "⚙️", onClick: () => setSheet("settings") },
   ];
@@ -241,6 +243,7 @@ export default function Profile({ onNavigate, onOpenImpact }: { onNavigate: (t: 
       <ThemeSheet open={sheet === "theme"} onClose={() => setSheet(null)} />
       <StickerSheet open={sheet === "sticker"} onClose={() => setSheet(null)} />
       {cloud.configured && <CloudAccountSheet open={sheet === "cloud"} onClose={() => setSheet(null)} />}
+      <InstallAppSheet open={sheet === "install"} onClose={() => setSheet(null)} />
       <NotesSheet open={sheet === "notes"} onClose={() => setSheet(null)} />
       <SettingsSheet open={sheet === "settings"} onClose={() => setSheet(null)} />
     </div>
