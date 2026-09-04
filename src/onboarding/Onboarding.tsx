@@ -67,6 +67,9 @@ export default function Onboarding() {
 
       {step === "name" && (
         <div className="flex flex-col gap-6 w-full max-w-sm">
+          <div className="flex justify-center">
+            <Mascot size={48} />
+          </div>
           <div className="text-center">
             <p className="text-sm font-bold mb-1" style={{ color: "var(--primary-strong)" }}>
               لنخصصه لكِ
@@ -96,6 +99,9 @@ export default function Onboarding() {
 
       {step === "interests" && (
         <div className="flex flex-col gap-6 w-full max-w-sm">
+          <div className="flex justify-center">
+            <Mascot size={48} />
+          </div>
           <div className="text-center">
             <h1 className="text-xl font-extrabold">ما أكثر شيء تريدين الاهتمام به؟</h1>
             <p className="text-sm mt-1" style={{ color: "var(--ink-faint)" }}>يمكنك اختيار أكثر من واحد</p>
@@ -127,6 +133,9 @@ export default function Onboarding() {
 
       {step === "habits" && (
         <div className="flex flex-col gap-6 w-full max-w-sm">
+          <div className="flex justify-center">
+            <Mascot size={48} />
+          </div>
           <div className="text-center">
             <h1 className="text-xl font-extrabold">اختاري عادات تريدين متابعتها</h1>
             <p className="text-sm mt-1" style={{ color: "var(--ink-faint)" }}>
@@ -157,6 +166,9 @@ export default function Onboarding() {
 
       {step === "theme" && (
         <div className="flex flex-col gap-6 w-full max-w-sm">
+          <div className="flex justify-center">
+            <Mascot size={48} />
+          </div>
           <div className="text-center">
             <h1 className="text-xl font-extrabold">اختاري لونك</h1>
             <p className="text-sm mt-1" style={{ color: "var(--ink-faint)" }}>هذا تطبيقك أنتِ</p>

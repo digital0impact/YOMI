@@ -10,6 +10,7 @@ import BrandHeader from "../components/BrandHeader";
 import HeroCard from "../components/HeroCard";
 import DailyMessageCard from "../components/DailyMessageCard";
 import Sticker from "../components/Sticker";
+import Mascot from "../components/Mascot";
 import type { PrayerName } from "../types";
 
 export default function Home() {
@@ -114,9 +115,12 @@ export default function Home() {
           </div>
           <div className="mt-3 flex flex-col">
             {todayTasks.length === 0 && (
-              <p className="text-sm py-2" style={{ color: "var(--ink-faint)" }}>
-                لا مهام اليوم بعد، أضيفي أول مهمة لكِ.
-              </p>
+              <div className="flex items-center gap-2.5 py-1.5">
+                <Mascot size={40} />
+                <p className="text-sm" style={{ color: "var(--ink-faint)" }}>
+                  لا مهام اليوم بعد، أضيفي أول مهمة لكِ.
+                </p>
+              </div>
             )}
             {todayTasks.map((t, i) => (
               <button

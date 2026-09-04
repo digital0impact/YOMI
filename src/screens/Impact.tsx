@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApp } from "../state/store";
 import ScreenHeader from "../components/ScreenHeader";
 import ImpactQuickSheet from "../components/ImpactQuickSheet";
+import Mascot from "../components/Mascot";
 import { formatShortDateAr } from "../utils/date";
 
 export default function Impact({ onBack }: { onBack: () => void }) {
@@ -25,7 +26,9 @@ export default function Impact({ onBack }: { onBack: () => void }) {
           <p className="section-title mb-3 px-1">🌿 آثاري الجميلة</p>
           {state.impact.length === 0 ? (
             <div className="card text-center py-8">
-              <p className="text-3xl mb-2">🤍</p>
+              <div className="flex justify-center mb-2">
+                <Mascot size={64} />
+              </div>
               <p className="font-bold">لم تُسجَّلي أثرًا بعد</p>
               <p className="text-sm mt-1" style={{ color: "var(--ink-faint)" }}>
                 حتى الخير الصغير له أثر.

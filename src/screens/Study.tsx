@@ -5,6 +5,7 @@ import BrandHeader from "../components/BrandHeader";
 import HeroCard from "../components/HeroCard";
 import AddTaskSheet from "../components/AddTaskSheet";
 import AddSubjectSheet from "../components/AddSubjectSheet";
+import Mascot from "../components/Mascot";
 import { currentWeekKeys, todayKey } from "../utils/date";
 import type { TaskKind } from "../types";
 
@@ -154,9 +155,12 @@ export default function Study() {
           </div>
           <div className="mt-2 flex flex-col">
             {state.subjects.length === 0 && (
-              <p className="text-sm py-2" style={{ color: "var(--ink-faint)" }}>
-                لا مواد بعد، أضيفي أول مادة لكِ.
-              </p>
+              <div className="flex items-center gap-2.5 py-1.5">
+                <Mascot size={40} />
+                <p className="text-sm" style={{ color: "var(--ink-faint)" }}>
+                  لا مواد بعد، أضيفي أول مادة لكِ.
+                </p>
+              </div>
             )}
             {state.subjects.map((s, i) => {
               const summary = subjectSummary(s.id, state.tasks);
