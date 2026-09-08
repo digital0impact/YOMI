@@ -37,10 +37,12 @@ export default function Onboarding() {
     <div className="app-shell items-center justify-center px-6 py-10 fade-in">
       {step === "welcome" && (
         <div className="flex flex-col items-center text-center gap-5 max-w-sm">
-          <div className="relative w-32 h-32 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full pattern-dots" />
-            <Mascot size={112} />
-          </div>
+          <img
+            src="/hero-yomi.png"
+            alt="يومي"
+            className="w-56 h-56 rounded-[32px]"
+            style={{ boxShadow: "4px 4px 0 var(--shadow-soft)" }}
+          />
           <h1 className="text-2xl font-extrabold">أهلاً بكِ</h1>
           <p className="text-[15px] leading-8" style={{ color: "var(--ink-soft)" }}>
             هذا المنظم هدية لكِ

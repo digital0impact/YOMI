@@ -18,7 +18,11 @@ export const DEFAULT_STICKER = "/stickers/tulip.svg";
  */
 export const STICKERS: string[] = [
   "/stickers/tulip.svg",
-  "/stickers/blossom-heart.svg",
+  "/stickers/blossom.png",
+  "/stickers/notebook.png",
+  "/stickers/mug.png",
+  "/stickers/calendar.png",
+  "/stickers/star-heart.png",
   "/stickers/sunflower.svg",
   "/stickers/heart.svg",
   "/stickers/star.svg",
